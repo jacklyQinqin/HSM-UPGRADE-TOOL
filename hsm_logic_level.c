@@ -2429,6 +2429,7 @@ unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p)
     /*TEST PASS*/
     p->ISTECC512A_CosVersionRead = CosReadVersion;
     p->ISTECC512A_StatusSync = SyncStatus;
+    p->ISTECC512A_PinConfirm = PinConfirm;
     /*Erase  app,reset the chip ,will return to bootloader*/
     p->ISTECC512A_APPErase = APPErase;
     /*Update the app.*/
