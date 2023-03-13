@@ -47,7 +47,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DownLoadFile.h"
 /*print log yes or no*/
 #define HSM_LOGIC_LINIX_DEBUG_ON 0
 /*send and receive buff*/
@@ -2142,75 +2141,75 @@ static unsigned long IS32U512AReceiveOneMessage(unsigned char *rec, unsigned lon
  */
 unsigned long APPUpdate(void)
 {
-    unsigned long time = 0;
-    unsigned char xor = 0;
-    unsigned long ret =  0;
-    unsigned long i = 0;
+    // unsigned long time = 0;
+    // unsigned char xor = 0;
+    // unsigned long ret =  0;
+    // unsigned long i = 0;
 
-    const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
-    // ret  = BootloaderSync();
-    // if(ret)
+    // const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
+    // // ret  = BootloaderSync();
+    // // if(ret)
+    // // {
+    // //     return fail;
+    // // }
+    // for(time=0;time<MAX_LINE;time++)
     // {
-    //     return fail;
-    // }
-    for(time=0;time<MAX_LINE;time++)
-    {
-        //printf("the line is %d\n",time);
-        /*send update message*/
-        IS32U512ASendOneMessage((unsigned char *)arrayPointer[time],((unsigned char *)arrayPointer[time])[4] +((unsigned char *)arrayPointer[time])[5]*256 );
+    //     //printf("the line is %d\n",time);
+    //     /*send update message*/
+    //     IS32U512ASendOneMessage((unsigned char *)arrayPointer[time],((unsigned char *)arrayPointer[time])[4] +((unsigned char *)arrayPointer[time])[5]*256 );
         
-        if(time == 0)
-        {
-            /*DUMMY*/
-            for(i=0;i <10;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }   
-            }
+    //     if(time == 0)
+    //     {
+    //         /*DUMMY*/
+    //         for(i=0;i <10;i++)
+    //         {
+    //             HSMMsDelay(10);
+    //             IS32U512AReceiveOneMessage(rx_buff,16);
+    //             if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
+    //             {
+    //                 break;
+    //             }   
+    //         }
               
-        }
-        else if((time == 1) || (time == 3))
-        {
-            HSMMsDelay(50);
-             /*DUMMY*/
-            for(i=0;i <5;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }
-            }
-        } else{
-             /*DUMMY*/
-            for(i=0;i <5;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }
-            }
-        }
+    //     }
+    //     else if((time == 1) || (time == 3))
+    //     {
+    //         HSMMsDelay(50);
+    //          /*DUMMY*/
+    //         for(i=0;i <5;i++)
+    //         {
+    //             HSMMsDelay(10);
+    //             IS32U512AReceiveOneMessage(rx_buff,16);
+    //             if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
+    //             {
+    //                 break;
+    //             }
+    //         }
+    //     } else{
+    //          /*DUMMY*/
+    //         for(i=0;i <5;i++)
+    //         {
+    //             HSMMsDelay(10);
+    //             IS32U512AReceiveOneMessage(rx_buff,16);
+    //             if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
+    //             {
+    //                 break;
+    //             }
+    //         }
+    //     }
 
-        if(rx_buff[8] == 0x90)
-        {
-            ;
-        } else{
+    //     if(rx_buff[8] == 0x90)
+    //     {
+    //         ;
+    //     } else{
             
-            printf("APPUpdate result error!\n");
-            return  fail;
-        }
-    }
+    //         printf("APPUpdate result error!\n");
+    //         return  fail;
+    //     }
+    // }
 
-    IS32U512ASendOneMessage(cod_guide,sizeof(cod_guide));
-    HSMMsDelay(60);
+    // IS32U512ASendOneMessage(cod_guide,sizeof(cod_guide));
+    // HSMMsDelay(60);
     return sucess;
 }
 
@@ -2433,7 +2432,7 @@ unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p)
     /*Erase  app,reset the chip ,will return to bootloader*/
     p->ISTECC512A_APPErase = APPErase;
     /*Update the app.*/
-    p->ISTECC512A_APPUpdate = APPUpdate;
+    //p->ISTECC512A_APPUpdate = APPUpdate;
     // add 2023-3-3
     p->ISTECC512A_SendOneMessage = IS32U512ASendOneMessage;
     p->ISTECC512A_ReceiveOneMessage = IS32U512AReceiveOneMessage;
