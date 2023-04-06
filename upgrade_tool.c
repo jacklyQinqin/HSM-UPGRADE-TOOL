@@ -56,7 +56,7 @@ for example:
  ./SKF-IMX8-IS32U512A-UPGRADE-TOOL_test  /dev/spidev32766.0   98 96  DownloadFile18906.ini
 */
 /*------------------------------------------------------------------------------------------------------------
-V0.0.3 .
+V0.0.6 .
 1.Configurable busy and reset. Will be passed as a parameter.
 2.The upgrade file is passed to the program as a separate file.
 so the paremter is 
@@ -89,7 +89,7 @@ static void print_usage_English(void)
 	printf("\n");
 	printf("Please note:\n1.Erase or after download file sucess,you need RESET the HSM. or POWER ON AGAIN\n");
 	printf("2.I recommend the frequency is 1M~4M,Not too slow,not too fast.\n");	
-	printf("VERSION : 0.0.3\n");
+	printf("VERSION : 0.0.6\n");
 	printf("TIME:  2023-4-6\n");
 }
 
