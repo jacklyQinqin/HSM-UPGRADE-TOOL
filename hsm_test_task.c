@@ -41,7 +41,7 @@
 #define SPI_SPEED_15M 15000000
 #define SPI_SPEED_18M 18000000
 #define SPI_SPEED_20M 20000000
-
+extern unsigned int spi_frequency;
 typedef struct{
 	unsigned char SM2PubKey[64];
 	unsigned char SM2PrivKey[32];
@@ -142,7 +142,7 @@ unsigned long  IS32U512AReadVerisonTest(void)
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
+	HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	HSMReset();
 
@@ -179,7 +179,7 @@ unsigned long  ISTECCEraseAPPTest(void)
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
+	HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	HSMReset();
 	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
@@ -237,7 +237,7 @@ unsigned long  ISTECCEraseAPPTest2(void)
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
+	HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	HSMReset();
 	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
@@ -289,7 +289,7 @@ unsigned long ISTECCUpdateTest(void)
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_01M);
+	HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	HSMReset();
 	HSMMsDelay(300);
