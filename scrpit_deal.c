@@ -25,7 +25,7 @@
 下载态执行测试态的指令
 BFEE0300050008000000	0x6985
 */
-
+extern unsigned int spi_frequency;
 /*协议的指令头和错误码*/
 const char head[4]  = {0x40,0x42,0x53,0x55};
 const char len[4]  = {0x16,0x00,0x00,0x00};
@@ -398,7 +398,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
     int time = 0;
     int len  = 0;
     int i  = 0;
-    int time_out_count  = 300000; //最长的延时设定60S. 30000 * 2MS
+    int time_out_count  = 5; //The most delay 3*10 + 100 * 2 = 230ms
     const char dummy[16] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
     const char rec_right[4] = {0x50,0x42,0x53,0x55};
     const char rec_error[4] = {0x63,0x62,0x63,0x65};
@@ -418,11 +418,11 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
         p->ISTECC512A_ReceiveOneMessage(receive,16);
         if(time >= 3)
         {
-            HSMUsDelay(20);
+            HSMUsDelay(100);
         }
         else
         {
-            HSMMsDelay(1);
+            HSMMsDelay(2);
         }
 
         if(0 == memcmp(receive,rec_right,4))
@@ -436,7 +436,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
         }
         else if(0 == memcmp(receive,rec_error,4))
         {
-            printf("返回状态错误:发送数据XOR错误!\n");
+            printf("return state error.!\n");
             hex_dump(receive,16,16,"rec_error");
             ret = 1;
             return ret;
@@ -444,7 +444,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
     }
     if(time == time_out_count)
     {
-        printf("超时未取得正确返回值.程序将返回!\n");
+        printf("Timeout and don't get the right respoond!\n");
         ret =  2;
     }
 
@@ -458,7 +458,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
     printf("time is %d\n",time);
     #endif 
 
-    if(time == 0)
+    if(len == 0)
     {
         printf("返回值长度错误,不能为0!\n");
         ret = 3;
@@ -549,7 +549,10 @@ int test_exec_script(char * file_name)
 }
 
 
-/*脚本解析测试*/
+/*analysis the script.
+Modify the way of the script is parsed .Parse one line at one time,and send one .
+This eliminates the need to read all the data at once,saving memory. 
+*/
 int script_analysis(char * file_name,char comapre_en)
 {
 	FILE * fp;
@@ -557,7 +560,9 @@ int script_analysis(char * file_name,char comapre_en)
 	int i = 0;
     int ret; 
     char string[]  = "script_analysis_test\n";
-    char line[4300][1024];
+    //char line[4300][1024];
+    /*Modify to a smaller memory.*/
+    char line[1024];
     char send[1024];
 	char receive[1024];
 	char compare[1024];
@@ -567,12 +572,11 @@ int script_analysis(char * file_name,char comapre_en)
 	struct timeval tv;
 	struct timeval tv2;
     long delta;
-
 	/*Create a pointer struct and Init it. */
   	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(4000000);
+	HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	HSMReset();
 	HSMMsDelay(30);
@@ -586,21 +590,13 @@ int script_analysis(char * file_name,char comapre_en)
         return 1;
     }
 
-    count = 0;
-    
-    /*read all data one time*/
-    memset(line,0x00,sizeof(line));
-	while(fgets(line[count],1024,fp))
-	{
-		count++;		
-	}
-	
 	gettimeofday(&tv,NULL);
 	i = 0;
-	while(i < count)
+    memset(line,0x00,sizeof(line));
+	while(fgets(line,1024,fp))
     {   	
 		/*解析一行脚本将其拆分为发送值和返回对比值--发送值为SPI格式+头+长度+XOR*/
-		analysis_one_line_script(line[i],send,&send_len,compare,&compare_len);
+		analysis_one_line_script(line,send,&send_len,compare,&compare_len);
 		/*发送指令*/
 		send_script_cmd(send,send_len,&ISTECC512AFunctionPointerStructure);
 		HSMUsDelay(5);
@@ -609,8 +605,7 @@ int script_analysis(char * file_name,char comapre_en)
 		receive_script_respond(receive,&ISTECC512AFunctionPointerStructure);
 		// hex_dump(send_buff,send_len,16,"SPI_FORAMT_CMD:");
 		// printf("the send_len is %4d\n\n",send_len);
-		/*解析响应值,并和预置的响应值作为对比*/
-		
+		/*compare the respond*/
 		if(comapre_en)
 		{
 			ret = compare_respond_value(receive,compare);
@@ -619,24 +614,18 @@ int script_analysis(char * file_name,char comapre_en)
 				printf("WRONG RESPOND!\n");
 				hex_dump(receive,(receive[4] + receive[5] * 256),16,"receive:");
 				hex_dump(compare,16,16,"COMPARE:");
-				printf("SCRIPT IS %4d,COMPARE FAILED!\n",count);
-				getchar();
-				getchar();
+				printf("SCRIPT IS %4d,COMPARE FAILED!\n",i);
 				exit(1);
 			}
 		}
 		i++;
-		// if((i % 400) == 0)
-		// {
-		// 	printf("i is %d\n",i);
-		// }
-		
+        memset(line,0x00,sizeof(line));
     }
     
 	gettimeofday(&tv2,NULL);
 	delta = (tv2.tv_sec*1000000 + tv2.tv_usec) - (tv.tv_sec*1000000 + tv.tv_usec);
-	printf("microsecond interval:%8ld MS\n",delta/1000);  //微秒
-	printf("total line %4d\n",count);
+	printf("microsecond interval:%8ld MS\n",delta/1000);  //ms = us*1000
+	printf("total line %4d\n",i);
 	if(comapre_en)
 	{
 		printf("compare enable and success.\n");
@@ -647,7 +636,6 @@ int script_analysis(char * file_name,char comapre_en)
     HSMMsDelay(60);
 
     fclose(fp);
-	printf("fclose fp\n");
-    /*打开脚本*/
+	printf("fclose fp and you neet to reset HSM or power again\n");
     return 0;
 }

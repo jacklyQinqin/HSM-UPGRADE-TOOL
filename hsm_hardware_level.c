@@ -547,7 +547,7 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 			return ret;
 		}
 		
-		//hex_dump(rx, rx_len, 16, "the rec message is:");
+		//hex_dump(rx, rx_len, 32, "the rec message is:");
 		return 0;
 	}
 	// else if (WORD_TR_MODE==bits)
