@@ -122,5 +122,9 @@ extern int HSMMsDelay(uint32_t ms_delay);
  * @param line_size 
  * @param prefix 
  */
+
+extern unsigned int ExportGpioAndInit(void);
+extern void UnexportGpioAndInit(void);
+
 extern void hex_dump(const void *src, size_t length, size_t line_size, char *prefix);
 #endif

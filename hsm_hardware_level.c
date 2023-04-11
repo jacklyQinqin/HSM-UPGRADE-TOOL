@@ -232,7 +232,7 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix)
  * In this routine, we export an IO as BUSY and another IO as reset
  * @return unsigned int 
  */
-static unsigned int ExportGpioAndInit(void)
+unsigned int ExportGpioAndInit(void)
 {
 	busyPin.pin = busy;
 	resetPin.pin = reset;
@@ -253,7 +253,7 @@ static unsigned int ExportGpioAndInit(void)
 
 
 /*Release IO resources */
-static void UnexportGpioAndInit(void)
+void UnexportGpioAndInit(void)
 {
 	busyPin.pin = busy;
 	resetPin.pin = reset;

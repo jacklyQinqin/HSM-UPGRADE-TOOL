@@ -576,10 +576,12 @@ int script_analysis(char * file_name,char comapre_en)
   	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
-	/*reset the 512A module*/
+    /*reset the 512A module*/
+    ExportGpioAndInit();
 	HSMReset();
 	HSMMsDelay(30);
+	HSMHardwareInit(spi_frequency);
+
     
     printf("the file is %s\n",file_name);
     const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
