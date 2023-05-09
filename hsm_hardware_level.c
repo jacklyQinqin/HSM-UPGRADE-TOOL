@@ -636,16 +636,6 @@ unsigned int HSMGetBusystatus(void)
 }
 
 
-/*reset HSM module operation*/
-unsigned int  HSMReset(void)
-{
-	gpio_write(&resetPin,0);
-	usleep(10000);
-	gpio_write(&resetPin,1);
-	usleep(10000);
-    return 0;
-}
-
 /*us delay
 hsm_logic_level.c  invoking*/
 int HSMUsDelay(uint32_t us_delay)
@@ -658,4 +648,16 @@ hsm_logic_level.c  invoking*/
 int HSMMsDelay(uint32_t ms_delay)
 {
     usleep(ms_delay*1000);
+}
+
+
+
+/*reset HSM module operation*/
+unsigned int  HSMReset(void)
+{
+	gpio_write(&resetPin,0);
+	usleep(50*1000);
+	gpio_write(&resetPin,1);
+	usleep(2*1000);
+    return 0;
 }
