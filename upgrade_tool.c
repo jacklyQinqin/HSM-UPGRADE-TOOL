@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 {
 	int ret = 0;
 	int time = 0;
-
+	int sem_status = 0;
 	int step = 0;
 
 	print_usage_English();
@@ -131,11 +131,42 @@ int main(int argc, char *argv[])
 		printf("Please input right spi_frequency!\n");
 		return  2;
 	}
-	/*STEP1.CHECK VERSION*/
+
+
+			/*Init the hardware . spi interface  and reset,busy io*/
+	HSMHardwareInit(spi_frequency);
+	/*初始化信号量*/
+	HSMSempohreInit();
+		/*初始化线程锁*/
+	HSMThreadMutexInit();
+
+	/*READ THE SEMPHRE 10000 TIMES .IF NOT HAVE 1. IT'S NO INIT.*/
+	for(time =0;time < 10000;time++)
+	{
+		ret = HSMGetSem();
+		HSMUsDelay(10);
+		if(ret == 1)
+		{
+			printf("time is %4d,get 1.\n",time);
+			sem_status = 1;
+			break;
+		}
+	}
+	if(sem_status != 1)
+	{
+		HSMSetSemphre();
+	}
+	else
+	{
+		printf("catch the semphre is 1!\n it has been init\n");
+
+	}
 	step = STEP1_CHECK_VERISON;
+	/*ALL OF THE UPGRADE FLOW,CAN'T BE BKEAK */
+	
 	if(step == STEP1_CHECK_VERISON)
 	{	
-		printf("CURRENT STEP :%4d\n",step);
+		printf("CURRENT STEP :%4d ,READ HSM VERISON\n",step);
 		ret = IS32U512AReadVerisonTest();
 		if(ret)
 		{
@@ -172,16 +203,23 @@ int main(int argc, char *argv[])
 	/*STEP3 DOWNLOAD NEW HSM APP*/
 	if(step == DOWNLOAD_NEW_APP_FAILED)
 	{
+
 		printf("CURRENT STEP :%4d\n",step);
+		printf("NOTE: PLEASE RESET HSM MODULE\n");
+		scanf("INPUT ANY NUM TO CONTINUE%d",ret);	
+
+		HSMPSemphre();
 
 		ret = script_analysis(argv[4],1);
 		//ret = ISTECCUpdateTest();
 		if(ret)
 		{
+			HSMVSemphre();
 			printf("TRY TO DOWNLOAD NEW HSM APP FAILED ,PLEASE CHECK THE COMMUCAITON\n");
 			return DOWNLOAD_NEW_APP_FAILED;
 		}
 		else{
+			HSMVSemphre();
 			printf("DOWNLOAD NEW HSM APP SUCCESS!\n");
 			printf("THE NEXT STEP WILL CHECK NEW VERISON\n");
 			step = STEP4_CHECK_VERISON_AGAIN;
@@ -196,6 +234,7 @@ int main(int argc, char *argv[])
 		{
 			printf("THE VERISON READ FAILED,PLEASE CHECK THE COMMUNACATION.\n");
 			printf("TRY TO UPGRADE\n");
+			HSMVSemphre();
 			return CHECK_VERISON_AGAIN_FAILED;
 		}
 		else{

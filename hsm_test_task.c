@@ -141,17 +141,16 @@ unsigned long  IS32U512AReadVerisonTest(void)
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
-	/*reset the 512A module*/
-	ExportGpioAndInit();
-	HSMReset();
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
+	// /*reset the 512A module*/
+	// ExportGpioAndInit();
+	// /*Init the hardware . spi interface  and reset,busy io*/
+	// HSMHardwareInit(spi_frequency);
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
 	{
 		printf("sync failed\n");
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	printf("sync success\n");
@@ -159,8 +158,7 @@ unsigned long  IS32U512AReadVerisonTest(void)
 	the verison is  1.8.7  .in this time(2022/6/16)*/
 	ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
 	printf("IS32U512A module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
-	/*deinit the hardware. spi interface and reset,busy io.release the source*/
-	HSMHardwareDeinit();
+	return 0;
 }
 
 /*Erase APP Test,If you not sure what you're doing, don't test it.
@@ -174,20 +172,20 @@ unsigned long  ISTECCEraseAPPTest(void)
 	unsigned char test_id[32];
 
 	int ret;
-	/*Create a pointer struct and Init it. */
+	// /*Create a pointer struct and Init it. */
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	
-	HSMReset();
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
+	// HSMReset();
+	// /*Init the hardware . spi interface  and reset,busy io*/
+	// HSMHardwareInit(spi_frequency);
 	/*reset the 512A module*/
 	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
 	{
 		printf("sync failed\n");
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	printf("sync success\n");
@@ -209,14 +207,14 @@ unsigned long  ISTECCEraseAPPTest(void)
 	if (sign_verify_ret)
 	{
 		printf("Erase app failed！\n");
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	else
 	{
 		printf("Erase app success!\n");
 	}
-	HSMHardwareDeinit();
+	// HSMHardwareDeinit();
 	return 0;
 }
 
@@ -236,17 +234,17 @@ unsigned long  ISTECCEraseAPPTest2(void)
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	/*reset the 512A module*/
-	ExportGpioAndInit();
-	HSMReset();
+	// ExportGpioAndInit();
+	// HSMReset();
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
+	// HSMHardwareInit(spi_frequency);
 
 	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
 	{
 		printf("sync failed\n");
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	printf("sync success\n");
@@ -258,7 +256,7 @@ unsigned long  ISTECCEraseAPPTest2(void)
 	{
 		printf("pin confirm failed!\n");
 		sign_verify_error_count++;
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	else
@@ -270,14 +268,14 @@ unsigned long  ISTECCEraseAPPTest2(void)
 	if (sign_verify_ret)
 	{
 		printf("Erase app failed！\n");
-		HSMHardwareDeinit();
+		// HSMHardwareDeinit();
 		return 1;
 	}
 	else
 	{
 		printf("Erase app success!\n");
 	}
-	HSMHardwareDeinit();
+	// HSMHardwareDeinit();
 	return 0;
 }
 
@@ -289,11 +287,11 @@ unsigned long ISTECCUpdateTest(void)
   	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	/*reset the 512A module*/
-	ExportGpioAndInit();
-	HSMReset();
-	HSMMsDelay(300);
+	// ExportGpioAndInit();
+	// HSMReset();
+	// HSMMsDelay(300);
 	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
+	// HSMHardwareInit(spi_frequency);
 
  	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_APPUpdate();
   	if (ret)

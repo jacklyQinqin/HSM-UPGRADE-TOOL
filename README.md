@@ -37,6 +37,7 @@ Remove irrelevant  test code
 ReWrite the  code part of GPIO operation.
 add MIT license.
 
+<<<<<<< HEAD
 ##	V0.7
 TIME:2023/4/11
 HERE ARE UPDATES:
@@ -173,3 +174,9 @@ HERE ARE UPDATES:
     UPGRADE SUCCESS . CONGRATULATIONS!
 
 
+=======
+-------------------------------------------------------------
+TIME      :2023-4-19
+ADD NEW UPGRADE FILE . NAME:   DownloadFile18907-new.ini
+Added a constraint on generating keys, now only public keys with a public key whose first byte is less than 0X80.
+>>>>>>> 7abc5ebc4b80a6d2e05df6f9860c05f82a409a7f

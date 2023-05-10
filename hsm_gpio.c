@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <string.h>
 #include "hsm_gpio.h"
+#define HSM_GPIO_DEBUG 0
 
 int gpio_export(GpioMessageTyepdef* GpioX)
 {  
@@ -25,6 +26,7 @@ int gpio_export(GpioMessageTyepdef* GpioX)
 
 	fd = open("/sys/class/gpio/export", O_WRONLY);
 	if (fd < 0) {
+		printf("HSM-DEBUG: gpio_export open failed, fd: %4d\n",fd);
 		return(-1);
 	}
 	sprintf(name, "%d", GpioX->pin);  
@@ -37,10 +39,12 @@ int gpio_export(GpioMessageTyepdef* GpioX)
 		/* GPIO errno=16, Device or resource busy, already exist*/
 		if (errno == 16)
 		{
+			printf("HSM-LOG:export's fd: %4d Device or resource busy,error %4d,ret is %4d\n",fd,errno,ret);
 			return 0;
 		}
 		else
 		{
+			printf("HSM-DEBUG:gpio_export's fd: %4d write fail,error %4d,ret is %4d\n",fd,errno,ret);
 			return -1;  
 		}
 	}  
@@ -64,14 +68,20 @@ int gpio_direction(GpioMessageTyepdef* GpioX)
 	sprintf(path,"/sys/class/gpio/gpio%d/direction", GpioX->pin);
 	fd = open(path, O_WRONLY);
 	if (fd < 0) {
+		printf("HSM-DEBUG: gpio_direction open failed ,fd is 4%d\n",fd);
 		return -1;  
-	}  
+	} 
+	printf("HSM-DEBUG:goio_direction open success ,fd is 4%d\n",fd);
 	res = write(fd, dir, sizeof(dir));
 	close(fd);  
 	if (res <= 0) {
+		printf("HSM-DEBUG: gpio_direction write failed ,res is 4%d\n",res);
 		return -1;
 	}
-	
+	#if(HSM_GPIO_DEBUG == 1)
+	printf("HSM-DEBUG: write direction success ,res is 4%d\n",res);
+	#endif
+
 	return 0;
 }
 
@@ -81,18 +91,26 @@ int gpio_read(GpioMessageTyepdef * GpioX)
 	char value_str[4] = {0};
 	int value = -1;
 	int fd = -1;
+	int res;
 	sprintf(path, "/sys/class/gpio/gpio%d/value", GpioX->pin);  
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {  
+		printf("HSM-DEBUG:gpio_read open failed ,fd is 4%d\n",fd);
 		return -1;  
 	}
-
+	#if(HSM_GPIO_DEBUG == 1)
+	printf("HSM-DEBUG:goio_read open  success ,fd is 4%d\n",fd);
+	#endif
 	if (read(fd, value_str, 3) < 0) {  
+		printf("HSM-DEBUG: read gpio value failed ,fd is 4%d\n",fd);
 		close(fd);  
 		return -1;
 	}
 
 	value = atoi(value_str);
+	#if(HSM_GPIO_DEBUG == 1)
+	printf("HSM-DEBUG: read gpio value success ,value is 4%d\n",value);
+	#endif
 	close(fd);
 	return value;
 }
@@ -108,14 +126,15 @@ int gpio_write(GpioMessageTyepdef * GpioX, int value)
 
 	fd = open(path, O_RDWR);
 	if (fd < 0) {  
-		printf("gpio_write  open failed\n");
+		printf("HSM-DEBUG:gpio_write open failed ,fd is %4d\n",fd);
 		return -1;  
 	}
+		printf("HSM-DEBUG: gpio_write  open success\n");
 
 	int res = write(fd, value_str, strlen(value_str));
 	if (res <= 0) {
 		close(fd);  
-		printf("gpio_write failed\n");
+		printf("HSM-DEBUG:gpio_write  failed\n,fd id %d ,res is %4d",fd , res);
 		return -1;
 	}
 	close(fd);  
@@ -130,15 +149,21 @@ int gpio_unexport(GpioMessageTyepdef* GpioX)
 	
 	fd = open("/sys/class/gpio/unexport", O_WRONLY);  
 	if (fd < 0) {  
-		printf("GPIO open unexport error: %d\n", fd);
+		printf("HSM-DEBUG:gpio_export open failed: %d,gpio is %4d\n", fd,GpioX->pin);
 		return -1;  
 	}  
+
 	len = sprintf(name, "%d", GpioX->pin);
 	if (write(fd, name, len) < 0) {  
 		close(fd);  
-		printf("write failed fd is %d\n", fd);
+		printf("HSM-DEBUG:gpio_unexport write failed fd is %d,gpio is %4d\n", fd,GpioX->pin);
 		return -1;  
 	}  
+	
 	close(fd);  
+	#if(HSM_GPIO_DEBUG == 1)
+	printf("HSM-DEBUG:gpio_unexport success: fd is %4d,gpio is %4d\n", fd,GpioX->pin);
+	#endif
+
 	return 0;  
 }

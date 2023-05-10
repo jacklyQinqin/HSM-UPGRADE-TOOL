@@ -40,8 +40,8 @@ SPI线上返回数据:
 #define RESPOND_COMPARE_SUCCESS 0X00
 
 int analysis_one_line_script(char * script_line,char *send,int * send_len, char *compare,int * compare_len);
-int receive_script_respond(char *compare_return_value,ISTECCFunctionPointer_t * p);
-int send_script_cmd(char *send, int send_len,ISTECCFunctionPointer_t * p);
 
+long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p);
+long send_script_cmd(unsigned char *send, unsigned long send_len,ISTECCFunctionPointer_t * p);
 int script_analysis(char * file_name,char comapre_en);
 #endif

@@ -11,8 +11,8 @@
   * Description: 
   * Auth : qin xiaodong 
   * Email: qinxd@istecc.com
-  * API VERSION: 0.2
-  * Time : 2022-6-15
+  * API VERSION: 0.4
+  * Time : 2023-5-10
   * note : HSM_ means high secure module.
   * This file provides hardware - specific initialization capabilities. SPI interface initialization, and reset, BUSY, SS three IO initialization.
   * The following functions are used by users:
@@ -22,6 +22,8 @@
   * Release all initialization resources.
   *  
   * History: 
+  * V0.4
+  * 
 
   ******************************************************************************/
 #ifndef __HSM_HARDWARE_LEVEL__
@@ -122,9 +124,5 @@ extern int HSMMsDelay(uint32_t ms_delay);
  * @param line_size 
  * @param prefix 
  */
-
-extern unsigned int ExportGpioAndInit(void);
-extern void UnexportGpioAndInit(void);
-
 extern void hex_dump(const void *src, size_t length, size_t line_size, char *prefix);
 #endif
