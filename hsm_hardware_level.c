@@ -39,6 +39,103 @@
 #include "hsm_gpio.h"
 
 
+
+/*FOR MUL PROCESS ,TRY  TO ADD SEMPOHRE FOR INIT*/
+/*Creat a semphore.*/
+#include <sys/sem.h>
+//#include <semun.h>
+static union semun
+{
+    int val;
+    struct semid_ds *buf;
+    unsigned short * array;
+    struct seminfo *__buf;
+    /* data */
+};
+
+
+static int hardware_semphore_id;
+int HardwareSetSemphre(void)
+{
+    union semun sem_union;
+    sem_union.val = 1;
+
+    if(semctl(hardware_semphore_id,0,SETVAL,sem_union) == -1)
+        return 0;
+    return 1;
+    
+}
+void HardwareDeleteSemphre(void)
+{
+    union semun sem_union;
+    sem_union.val = 1;
+
+    if(semctl(hardware_semphore_id,0,IPC_RMID,sem_union) == -1)
+       fprintf(stderr,"Failed to delete semphore.\n");
+}
+/*信号量-1操作*/
+int HardwarePSemphre(void)
+{
+    struct sembuf sem_b;
+    sem_b.sem_num = 0;
+    sem_b.sem_op = -1;
+    sem_b.sem_flg = SEM_UNDO;
+    if(semop(hardware_semphore_id,&sem_b,1)  == -1)
+    {
+        fprintf(stderr,"Failed to HSMPSemphre.\n");
+        return 0;
+    }
+    printf(
+        "P"
+    );
+    return 1;
+}
+/*信号量+1操作*/
+int HardwareVSemphre(void)
+{
+    
+    struct sembuf sem_b;
+    sem_b.sem_num = 0;
+    sem_b.sem_op = 1;
+    sem_b.sem_flg = SEM_UNDO;
+    if(semop(hardware_semphore_id,&sem_b,1)  == -1)
+    {
+        fprintf(stderr,"Failed to HSMVSemphre.\n");
+        return 0;
+    }
+    printf(
+        "V"
+    );
+    return 1;
+}
+
+/*creat semphore or get key*/
+int HardwareSempohreInit(void)
+{
+    hardware_semphore_id = semget((key_t)3210,1,0666|IPC_CREAT);
+    printf("get sem id %4d\n",hardware_semphore_id);
+    return hardware_semphore_id;
+}
+
+int HardwareSempohreDeInit(void)
+{
+    HardwareDeleteSemphre();
+    return 0;
+}
+
+
+int HardwareGetSem(void)
+{
+    union semun sem_union;
+    sem_union.val = -2;
+
+    sem_union.val = semctl(hardware_semphore_id,0,GETVAL,sem_union) ;
+    //printf("the value is %4d\n",sem_union.val);    
+    return  sem_union.val;
+}
+
+
+
 /*SPI default device name , and number of busy io, reset io*/
 char SPI_DEV_NAME[100] = "/dev/spidev32766.0";
 int busy = 98;
@@ -268,32 +365,47 @@ unsigned int  HSMHardwareInit(unsigned long in_speed)
 
 
 	/*add semphore init  and mutex init at this.*/
-	/*初始化信号量*/
+	/*初始化逻辑层信号量*/
 	HSMSempohreInit();
+	/*初始化HARDWARE层信号量*/
+	HardwareSempohreInit();
 	/*初始化线程锁*/
 	HSMThreadMutexInit();
 
-	/*READ THE SEMPHRE 10000 TIMES .IF NOT HAVE 1. IT'S NO INIT.*/
-	for(time =0;time < 10000;time++)
+	ret = HardwareGetSem();
+	if(ret != 1)
 	{
-		ret = HSMGetSem();
-		HSMUsDelay(10);
-		if(ret == 1)
-		{
-			printf("time is %4d,get 1.\n",time);
-			sem_status = 1;
-			break;
-		}
-	}
-	if(sem_status != 1)
-	{
+		printf("FIRST INIT!\n");
 		HSMSetSemphre();
+		HardwareSetSemphre();
 	}
 	else
 	{
-		printf("catch the semphre is 1!\n it has been init\n");
-
+		printf("SEMPHORE HAVE BEEN INITED!\n");
 	}
+
+	// /*READ THE SEMPHRE 10000 TIMES .IF NOT HAVE 1. IT'S NO INIT.*/
+	// for(time =0;time < 50000;time++)
+	// {
+	// 	ret = HSMGetSem();
+	// 	HSMUsDelay(10);
+	// 	if(ret == 1)
+	// 	{
+	// 		printf("time is %4d,get 1.\n",time);
+	// 		sem_status = 1;
+	// 		break;
+	// 	}
+	// }
+	// if(sem_status != 1)
+	// {
+	// 	/*SET*/
+	// 	printf("the sem_status == 0,set semphore\n");
+	// 	HSMSetSemphre();
+	// }
+	// else
+	// {
+	// 	printf("catch the semphre is 1!\n it has been init\n");
+	// }
 
 	//ExportGpioAndInit();
     return 0;
