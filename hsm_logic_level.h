@@ -72,6 +72,33 @@ PART2   S	32Byte*/
 /*Unit: us*/
 #define VERIFY_DELAY 400
 
+/**
+ * @brief
+ *  Don't care about it .
+ */
+// typedef enum{
+// 	ISTECC_VERIFY_E_RS = 0,   //
+// 	ISTECC_VERIFY_M_RS = 1,
+// 	ISTECC_VERIFY_E_RS_PUBKEY = 2,
+// 	ISTECC_VERIFY_M_RS_PUBKEY = 3,
+// 	ISTECC_VERIFY_M_RS_PUBKEY_ID = 4, //有可能是最多的用法。传入M + RS + PUBKEY + ID
+// }ISTECVerifyMode_t;
+/**
+ * @brief
+ * Don't care about it .
+ */
+// typedef struct
+// {
+// 	unsigned char * message; 	//消息或者预处理值的指针
+// 	unsigned int    message_len;//消息的长度
+// 	unsigned char * id;			//ID指针
+// 	unsigned int    id_len; 	//ID的长度
+// 	unsigned char * rs; 		//签名结果
+// 	unsigned char * pubkey; 	//公钥
+// 	ISTECVerifyMode_t    	verify_mode;//验签模式
+// 	unsigned int    		result; 	//验签结果.暂时不用
+// }ISTECCVerifyMessageInfo_t, * ISTECCVerifyMessageInfoPointer_t;
+
 typedef enum
 {
   ISTECC_POINT_DECOMPRESS_2 = 2,
@@ -172,11 +199,21 @@ typedef struct
     /*2022-11-23 add  e value sign*/
   unsigned long (*ISTECC512A_SM2SignEValue)(unsigned long prikey_index, unsigned char *e, unsigned char *p_sign_data);
 
-  /*2023-3-3 add */
-  unsigned long (*ISTECC512A_SendOneMessage)(unsigned char *send,unsigned long send_len);
-  unsigned long (*ISTECC512A_ReceiveOneMessage)(unsigned char *send,unsigned long send_len);
+   /*2023-5-9 add one key restore.*/
+  unsigned long (*ISTECC512A_Restore)(void);
+
+ /*2023-5-10 add SendOneMessage and RecOneMessage for Upgrade tools*/
+ unsigned long (*ISTECC512A_SendOneMessage)(unsigned char *send, unsigned long send_len);
+ unsigned long (*ISTECC512A_ReceiveOneMessage)(unsigned char * rec,unsigned long rec_len);
+
 } ISTECCFunctionPointer_t;
 
 /*Don't care about it. The funciton has init the pointer .*/
 unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p);
+
+
+
+int HSMSempohreInit(void);
+int  HSMThreadMutexInit(void);
+int HSMSempohreDeInit(void);
 #endif

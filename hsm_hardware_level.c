@@ -11,8 +11,8 @@
   * Description: 
   * Auth : qin xiaodong 
   * Email: qinxd@istecc.com
-  * API VERSION: 0.2
-  * Time : 2022-6-15
+  * API VERSION: 0.3
+  * Time : 2023-3-15
   ******************************************************************************
   * NOTE:
   * The following test code for the hardware part, based on the author's NXP - IMX8MQ environment implementation. 
@@ -38,14 +38,15 @@
 #include <linux/spi/spidev.h>
 #include "hsm_gpio.h"
 
-/*
-paremeter1:.device name
-paremeter2:.gpio_reset number
-paremeter3:.gpio_busy  number
-*/
-extern char SPI_DEV_NAME[];
-extern int busy; //QINXD'S IMX8 DEFAULT 98
-extern int reset;//QINXD'S IMX8 DEFAULT 96
+
+/*SPI default device name , and number of busy io, reset io*/
+char SPI_DEV_NAME[100] = "/dev/spidev32766.0";
+int busy = 98;
+int reset = 96;
+
+#define HSM_HARDWARE_DEBUG 0
+
+
 //hardware init.
 //spi init
 //and handshake init.
@@ -55,9 +56,10 @@ static int  mode;
 /*bit mode : byte mode.(8bit)*/
 static char bits = DEFAULT_MODE;
 /*default spi clk speed.*/
-uint32_t speed = 5000000;
+uint32_t  speed = 5000000;
 static uint16_t delay = 50;
 static int verbose;
+
 
 /*
 * for NXP.IMX8MQ
@@ -71,98 +73,20 @@ static int verbose;
 
 GpioMessageTyepdef busyPin = 
 {
+	.pin = 98,
 	.direction = GPIO_IN,
 };
 
 //mesg csPin = 
 //{
 //	.pin = 110,
-//	.flags = GPIO_OUT,
+//	.direction = GPIO_OUT,
 //};
 GpioMessageTyepdef resetPin = 
 {
+	.pin = 96,
 	.direction = GPIO_OUT,
 };
-
-// /****************************************************************\
-// * Function:	    byteToWrod
-// *
-// * Description:  Convert a Byte stream to a Word stream. Perform 
-// *	alignment and size tail conversion.
-// *
-// * Calls:
-// *				None
-// *
-// * Called By:
-// *
-// * Input:       w		word pointer
-// *              c		char pointer
-// 			   len		the length of char
-			   
-// *				
-// * Output:	   None
-// *
-// *
-// * Return:
-// *			
-// *
-// * Others:
-// *			None
-// *
-// * Remark:	
-// \****************************************************************/
-// static void byteToWord(unsigned int * w,unsigned char *c, int len)
-// {
-	
-// 	int time  = (len+3) / 4;
-// 	int i = 0;
-// 	unsigned int temp = 0;
-// 	//t  = (unsigned int *)c;
-// 	for(i=0;i<time;i++)
-// 	{
-// 		temp =  c[i*4] << 24;
-// 		temp |= (c[i*4+1])<<16;
-// 		temp |= (c[i*4+2])<<8;
-// 		temp |= (c[i*4+3])<<0;
-// 		w[i] = temp;	
-// 	}
-// }
-// /*Word Convert to byte*/
-// static void wordToByte(unsigned char *c,unsigned int * w, int len)
-// {
-	
-// 	int time = len /4;
-// 	int rest = len %4;
-// 	int i = 0;
-// 	unsigned int temp = 0;
-	
-// 	for(i=0;i<time;i++)
-// 	{
-// 		c[i*4+0] = w[i]>>24 & 0xff;
-// 		c[i*4+1] = w[i]>>16 & 0xff;
-// 		c[i*4+2] = w[i]>>8 & 0xff;
-// 		c[i*4+3] = w[i]>>0 & 0xff;
-// 	}
-	
-// 	if(1 == rest)
-// 	{
-// 		c[i*4+0] = w[i]>>24 & 0xff;
-	
-// }
-// 	else if(2 == rest)
-// 	{
-// 		c[i*4+0] = w[i]>>24 & 0xff;
-// 		c[i*4+1] = w[i]>>16 & 0xff;
-// 	}
-// 	else if(3 == rest)
-// 	{
-// 		c[i*4+0] = w[i]>>24 & 0xff;
-// 		c[i*4+1] = w[i]>>16 & 0xff;
-// 		c[i*4+2] = w[i]>>8  & 0xff;
-// 	}
-		
-	
-// }
 
 
 /****************************************************************\
@@ -234,19 +158,17 @@ void hex_dump(const void *src, size_t length, size_t line_size, char *prefix)
  */
 static unsigned int ExportGpioAndInit(void)
 {
-	busyPin.pin = busy;
-	resetPin.pin = reset;
-	/*导出需要的3个IO*/ 
-	gpio_export(&busyPin);
-	//gpio_export(&csPin);
-	gpio_export(&resetPin);
-	/*设置方向*/ 
-	gpio_direction(&busyPin);
-	//gpio_direction(&csPin);
-	gpio_direction(&resetPin);
-	/*设置默认值*/
-	//gpio_write(&csPin,1);
-	gpio_write(&resetPin,1);
+	// /*导出需要的3个IO*/ 
+	// gpio_export(&busyPin);
+	// //gpio_export(&csPin);
+	// gpio_export(&resetPin);
+	// /*设置方向*/ 
+	// gpio_direction(&busyPin);
+	// //gpio_direction(&csPin);
+	// gpio_direction(&resetPin);
+	// /*设置默认值*/
+	// //gpio_write(&csPin,1);
+	// gpio_write(&resetPin,1);
 	
 	return 0;	
 } 
@@ -255,12 +177,9 @@ static unsigned int ExportGpioAndInit(void)
 /*Release IO resources */
 static void UnexportGpioAndInit(void)
 {
-	busyPin.pin = busy;
-	resetPin.pin = reset;
-	
-	gpio_unexport(&busyPin);
-	//gpio_unexport(&csPin);
-	gpio_unexport(&resetPin);
+	// gpio_unexport(&busyPin);
+	// //gpio_unexport(&csPin);
+	// gpio_unexport(&resetPin);
 }
 
 
@@ -301,8 +220,10 @@ static void UnexportGpioAndInit(void)
 \****************************************************************/
 unsigned int  HSMHardwareInit(unsigned long in_speed)
 {
+	int time  = 0;
     int ret = 0;
     speed = in_speed;
+	int sem_status = -1;
     printf("hsm_hardware_init and the speed is %ld \n",in_speed);
     fd = open(SPI_DEV_NAME, O_RDWR);
     if (fd < 0)
@@ -343,16 +264,50 @@ unsigned int  HSMHardwareInit(unsigned long in_speed)
 
     printf("spi mode: 0x%x\n", mode);
     printf("bits per word: %d\n", bits);
+	printf("spi fd is: %d\n", fd);
 
-	ExportGpioAndInit();
+
+	/*add semphore init  and mutex init at this.*/
+	/*初始化信号量*/
+	HSMSempohreInit();
+	/*初始化线程锁*/
+	HSMThreadMutexInit();
+
+	/*READ THE SEMPHRE 10000 TIMES .IF NOT HAVE 1. IT'S NO INIT.*/
+	for(time =0;time < 10000;time++)
+	{
+		ret = HSMGetSem();
+		HSMUsDelay(10);
+		if(ret == 1)
+		{
+			printf("time is %4d,get 1.\n",time);
+			sem_status = 1;
+			break;
+		}
+	}
+	if(sem_status != 1)
+	{
+		HSMSetSemphre();
+	}
+	else
+	{
+		printf("catch the semphre is 1!\n it has been init\n");
+
+	}
+
+	//ExportGpioAndInit();
     return 0;
 }
 
 /*close spi and release the io */
 unsigned int  HSMHardwareDeinit(void)
 {
-    close(fd);
-	UnexportGpioAndInit();
+	if(fd > 0)
+	{
+		printf("close spi fd: %d\n",fd);
+		close(fd);
+	}
+	//UnexportGpioAndInit();
     return 0;
 }
 
@@ -419,8 +374,10 @@ unsigned int HSMWrite(unsigned char * tx,unsigned int tx_len)
 	        printf("can't send spi message");
 	        return ret;
 	    }
+		#if(HSM_HARDWARE_DEBUG==1)
+		hex_dump(tx, tx_len, 32, "the send message is:");
+		#endif
 
-		//hex_dump(tx, tx_len, 32, "the send message is:");
 	    return 0;
 	}
 	// else if (WORD_TR_MODE==bits)
@@ -546,9 +503,12 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 			printf("can't rec spi message");
 			return ret;
 		}
-		
-		//hex_dump(rx, rx_len, 32, "the rec message is:");
+		#if(HSM_HARDWARE_DEBUG==1)
+		hex_dump(rx, rx_len, 16, "the rec message is:");
+		#endif
+
 		return 0;
+	
 	}
 	// else if (WORD_TR_MODE==bits)
 	// {
@@ -632,7 +592,10 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 \****************************************************************/
 unsigned int HSMGetBusystatus(void)
 {
-	return  gpio_read(&busyPin);
+
+	usleep(100);
+	//return  gpio_read(&busyPin);
+	return 0;
 }
 
 
