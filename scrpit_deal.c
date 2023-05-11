@@ -392,13 +392,13 @@ int compare_respond_value(char * respond, char *comapare)
 }
 
 
-int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
+long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
 {
-    int ret  = 0; 
-    int time = 0;
-    int len  = 0;
-    int i  = 0;
-    int time_out_count  = 5; //The most delay 3*10 + 100 * 2 = 230ms
+    long ret  = 0; 
+    long time = 0;
+    long len  = 0;
+    long i  = 0;
+    long time_out_count  = 6; //The most delay 3*10 + 100 * 2 = 230ms
     const char dummy[16] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
     const char rec_right[4] = {0x50,0x42,0x53,0x55};
     const char rec_error[4] = {0x63,0x62,0x63,0x65};
@@ -416,9 +416,9 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
     for(time=0;time<time_out_count;time++)
     {
         p->ISTECC512A_ReceiveOneMessage(receive,16);
-        if(time >= 3)
+        if(time > 3)
         {
-            HSMUsDelay(100);
+            HSMMsDelay(300);
         }
         else
         {
@@ -428,7 +428,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
         if(0 == memcmp(receive,rec_right,4))
         {
             ;
-            //printf("rec right .,break\n");
+            printf("rec right .,break\n");
             //gettimeofday(&tv2,NULL);
             //delta = (tv2.tv_sec*1000000 + tv2.tv_usec) - (tv.tv_sec*1000000 + tv.tv_usec);
            // printf("microsecond interval:%8ld MS\n",delta/1000);  //微秒
@@ -442,6 +442,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
             return ret;
         }
     }
+
     if(time == time_out_count)
     {
         printf("Timeout and don't get the right respoond!\n");
@@ -492,7 +493,7 @@ int receive_script_respond(char *receive,ISTECCFunctionPointer_t * p)
     return ret;
 }
 
-int send_script_cmd(char *send, int send_len,ISTECCFunctionPointer_t * p)
+long send_script_cmd(unsigned char *send, unsigned long send_len,ISTECCFunctionPointer_t * p)
 {
     int ret  = 0; 
     /*SPI发送指令*/
@@ -575,11 +576,6 @@ int script_analysis(char * file_name,char comapre_en)
 	/*Create a pointer struct and Init it. */
   	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(spi_frequency);
-	/*reset the 512A module*/
-	HSMReset();
-	HSMMsDelay(30);
     
     printf("the file is %s\n",file_name);
     const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};

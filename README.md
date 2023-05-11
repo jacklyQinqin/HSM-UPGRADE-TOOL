@@ -1,43 +1,106 @@
-# HSM-UPGRADE-TOOL
-This is hsm‘s upgrade tool source code。licensed on MIT License。
-#IS32U512A-SM2 MODULE DRIDER AND TEST CASE.
+#	IS32U512A-SM2 MODULE DRIDER AND TEST CASE.
+
+## 1.8.8.4-01
 AUTHOR:QINXD
-TIME:2023/2/08
+TIME:2022/7/20
+ADD SM2 KDF AND POINTER DECOMPRESS.
+2022/7/25
 
-THIS IS A TOOL FOR UPGRADE HDXA HSM MODULE.
+## 1.8.8.4-02
+COS VERSION 1.8.8.4
+SOC VERISON V2
+更正了密钥衍生部分的说明文档和注释。
+KE和KS是同一个流程
+完整密钥或者是一个流程。
 
-FUNCITN:
-1.CHECK VERISON.
-2.ERASE HSM-HARDWARE.
-3.UPGRADE NEW HARDWARE.
-4.SIMPLE TEST SELF.
-
-NOTE:
-YOU NEED GIVE APP A NAME OF SPI DEVICE.
-
-HOW TO USE IT?
-1.GET THE NEW UPGRADE FILE FROM GITHUB.
-2.REPLACE THE DOWNLOADFILE.C AND DOWNLOADFILE.H.
-3.REPLACE THE busyPin AND resetPin at hsm_hardware_level.h
-4.COMPILE THE PROJECT WITH YOUR TOOLCHAIN 
-
-EXECUTE THE PROGRAM AND PASS THE SPIDEV NAME AS PARAMETERS 2.
-FOR EXAMPLE(IN MY ENVIRONMENT):
-# ./SKF-IMX8-IS32U512A-UPGRADE-TOOL_test  /dev/spidev32766.0
+修改后的名字是：
+ISTECC512A_SM2EncryptSignKeyKDF     生成衍生的签名或者加密密钥
+ISTECC512A_SM2CompleteKDF           生成完整私钥Si.
 
 
-V0.1
-The first verison. and test pass.
+## 1.8.8.4-03
+COS VERSION 1.8.8.4
+SOC VERISON 第三版
+加入完整的秘钥衍生例程
 
 
-V0.3
-Remove the ccm.c  and ccm.h 
-sm4.c sm4.h 
-Remove irrelevant  test code
-ReWrite the  code part of GPIO operation.
-add MIT license.
+## 1.8.8.5-01
+为了保持格式兼容，将logic_level的所有int型变量转为unsigned long
+char转换为unsinged char
 
--------------------------------------------------------------
-TIME      :2023-4-19
-ADD NEW UPGRADE FILE . NAME:   DownloadFile18907-new.ini
-Added a constraint on generating keys, now only public keys with a public key whose first byte is less than 0X80.
+## 1.8.8.6
+add mod add api.
+INS: 0X3B
+
+## 1.8.8.7 
+The test routine of SM4CCM is added.
+Added a separate SM2 encryption and decryption routine.
+Added separate mod_ Add interface.
+
+## 1.8.9.1
+add e+rs verify mode. and test data.
+
+
+## 1.8.9.2
+新的COS更正了HSM模块的点解压的问题。
+新的测试例程更正了点解压的测试例程。分别进行MODE2,MODE3的测试。
+修改了hex_dump()程序。只进行简单的打印信息输出。界面更加清晰。
+将DownloadFile.c 和DownloadFile.h更新为1.8.9.2版本。
+更正了导入私钥函数中错误的长度(64+6).更正为32+6.
+ImportSM2Prikey
+更正了导出私钥函数中错误的长度。
+
+
+## 1.8.9.4
+增加了E值签名的功能和测试DEMO.
+修改了APP update 流程。支持在线升级
+
+## 1.8.9.5
+增加了直接获取sij的功能。将导入秘钥和导出秘钥等操作包含在内。只用调用一次即可。
+
+
+## verison: 1.8.9.6
+updated based  on verison 1.8.9.5  
+The original verison is 1.8.9.5. ccm.c ccm.h sm4.c sm4.h files were removed on this basis.
+and the gpio.c gpio.h was rewritten.The gpio control structure has beed redefiend. 
+Removed some test code.  unsigned long ISTECCSm4CcmTest(void)
+Removed the  include "ccm.h"  and  include "sm4.h"
+MIT's license description was added at the beginning of each file.
+
+
+## verison: 1.8.9.6(01)
+add some debug message in gpio.c 
+the function SM2EValueVerify()  (in hsm_logic_level.c)
+add hsmdelay(10) below 
+    HSMMsDelay(1);
+    HSMMsDelay(10);
+    while (HSMGetBusystatus())
+
+## verison: 1.8.9.6(02)
+1. Add thread locks hsm_logic_level.c.
+
+2. Increase the delayed waiting time of functions such as signature/signature verification.
+
+3. Increase the amount of semaphores between processes.
+
+4. Delete the contents of HSMGetBusystatus and the operation of acquiring busy signals, and change all waiting times to delayed waiting.
+
+5. Update the multithreaded test routine. And test in multiple cases. You can do it separately in both terminals
+HSMSelfTestWithMultithreading() and  HSMSelfTestWithMulProcess()  of tests.
+
+
+## verison: 1.8.9.7
+1. Add function : One key to destory all key's of hsm.
+
+## verison: 1.8.9.8
+1.  Add SendOneMessage and RecOneMessage funciton pointer for Upgrade funciton.
+2.  Modify the HSMVSemphre ,remove the static .then they can be called extern.
+
+## verison 1.8.9.8(3)
+MERGE HSM-TEST-DEMO AND HSM-UPGRADE-TOOL.SO WE WILL GET  UNIFORM DRIVER.
+
+1.  Adjusted the HSM upgrade process,
+2.  Modify some  detail for main. If you pass in six parameters according to the previous Upgrade Code tool, the HSM upgrade will be performed. If 2 parameters are passed in, then the test will be performed.
+3.  Abstracts the upgrade functionality into a separate source file hsm_upgrade_test.c and .h
+4.  Modified the HSMHardwareInit function. add  HSMSempohreInit() and HSMThreadMutexInit(); And try 10000 times to get the value of the semaphore. if all of them 0, then setSemphre.
+
