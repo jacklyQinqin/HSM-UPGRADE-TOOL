@@ -468,18 +468,10 @@ unsigned long HSMSelfTestWithMultithreading(void)
 	pthread_t hsm_thread2;
 		/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(10000000);
-	/*reset the 512A module*/
-	//HSMReset();
-		/*初始化线程锁*/
-	HSMThreadMutexInit();
-	/*初始化信号量*/
-	HSMSempohreInit();
-	HSMSetSemphre();
 		/*Thread 1*/
 	ret = pthread_create(&hsm_thread1,NULL,thread1,NULL);
 	if(ret != 0)
 	{
-		HSMThreadMutexDeinit();
 		perror("Thread creation failed");
 		exit(EXIT_FAILURE);
 	}
@@ -488,20 +480,12 @@ unsigned long HSMSelfTestWithMultithreading(void)
 	ret = pthread_create(&hsm_thread2,NULL,thread2,NULL);
 	if(ret != 0)
 	{
-		HSMThreadMutexDeinit();
 		perror("Thread creation failed");
 		exit(EXIT_FAILURE);
 	}
-	printf(
-
-		"HSMThreadMutexInit\n"
-	);
-
 
 	scanf("%d",&ret);
 	if(ret == 1234)
-		HSMThreadMutexDeinit();
-		HSMSempohreDeInit();
 		return 0;
 }
 
@@ -535,10 +519,6 @@ unsigned long HSMSelfTestWithMulProcess(void)
 
 		/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(10000000);
-	/*初始化信号量*/
-	HSMSempohreInit();
-		/*初始化线程锁*/
-	HSMThreadMutexInit();
 	/*Create a pointer struct and Init it. */
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
@@ -654,7 +634,6 @@ unsigned long HSMSelfTestWithMulProcess(void)
 	printf("TEST COUNT:%8d\n",right_count);
 	scanf("%d",&ret);
 	if(ret == 1234)
-		HSMSempohreDeInit();
 		return 0;
 	return 0;
 }

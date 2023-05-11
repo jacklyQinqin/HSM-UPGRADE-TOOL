@@ -168,7 +168,7 @@ int HSMGetSem(void)
     sem_union.val = -2;
 
     sem_union.val = semctl(hsm_semphore_id,0,GETVAL,sem_union) ;
-    printf("the value is %4d\n",sem_union.val);    
+    //printf("the value is %4d\n",sem_union.val);    
     return  sem_union.val;
 }
 
