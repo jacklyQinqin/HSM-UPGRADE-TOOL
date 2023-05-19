@@ -202,16 +202,16 @@ unsigned long  IS32U512AFunctionTest(void)
 		printf("ISTECC512A_PinConfirm success!\n");
 	}
 
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinChange(default_pin, new_pin, 8);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("ISTECC512A_PinChange failed!\n");
-	// 	sign_verify_error_count++;
-	// }
-	// else
-	// {
-	// 	printf("ISTECC512A_PinChange success!\n");
-	// }
+	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinChange(default_pin, new_pin, 8);
+	if (sign_verify_ret)
+	{
+		printf("ISTECC512A_PinChange failed!\n");
+		sign_verify_error_count++;
+	}
+	else
+	{
+		printf("ISTECC512A_PinChange success!\n");
+	}
 
 	
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(0);
@@ -657,8 +657,8 @@ unsigned long  ISTECCSPointerDecompressTest(void)
 
 	/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	HSMReset();
+
+
 	/*How to use sync .if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
@@ -681,23 +681,28 @@ unsigned long  ISTECCSPointerDecompressTest(void)
 	{
 		printf("pin confirm success!\n");
 	}
-	/*Pointer Decompress mode 2 y0*/
-	memcpy(test_temp,test_public,32);
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2PointerDecompress(test_temp,ISTECC_POINT_DECOMPRESS_2,test_temp);
 
-	if (sign_verify_ret)
+	while(1)
 	{
-		printf("ISTECC512A_SM2PointerDecompress failed！\n");
-		HSMHardwareDeinit();
-		return 1;
-	}
-	else
-	{
-		printf("ISTECC512A_SM2PointerDecompress success!\n");
-		ret = memcmp(test_public,test_temp,64);
-		if(ret)
+
+		/*Pointer Decompress mode 2 y0*/
+		memcpy(test_temp,test_public,32);
+		sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2PointerDecompress(test_temp,ISTECC_POINT_DECOMPRESS_2,test_temp);
+
+		if (sign_verify_ret)
 		{
-			printf("Decomplress result error! maybe the mode is wrong.\n");
+			printf("ISTECC512A_SM2PointerDecompress failed！\n");
+			HSMHardwareDeinit();
+			return 1;
+		}
+		else
+		{
+			printf("ISTECC512A_SM2PointerDecompress success!\n");
+			ret = memcmp(test_public,test_temp,64);
+			if(ret)
+			{
+				printf("Decomplress result error! maybe the mode is wrong.\n");
+			}
 		}
 	}
 

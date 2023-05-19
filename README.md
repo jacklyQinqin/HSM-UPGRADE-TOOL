@@ -103,4 +103,57 @@ MERGE HSM-TEST-DEMO AND HSM-UPGRADE-TOOL.SO WE WILL GET  UNIFORM DRIVER.
 2.  Modify some  detail for main. If you pass in six parameters according to the previous Upgrade Code tool, the HSM upgrade will be performed. If 2 parameters are passed in, then the test will be performed.
 3.  Abstracts the upgrade functionality into a separate source file hsm_upgrade_test.c and .h
 4.  Modified the HSMHardwareInit function. add  HSMSempohreInit() and HSMThreadMutexInit(); And try 10000 times to get the value of the semaphore. if all of them 0, then setSemphre.
+## verison 1.8.9.8(4)
+1. Add a New HardwareSemphre  to record the status of the initialization. I think it's a better way.
 
+## verison 1.8.9.8(5)
+1. Modify the delay times of every fucntions. add fix tiem MACRO define.
+2. Most of delays is fixed.And Some need to automatically judge the delay based on the length.
+3. Notes: I modify the flow of Generate key pairs. Because the public key is filtered when the key is generated . This period is not fixed(most of the time it's 3-20ms).
+   I give enough delay when delaying(50ms). But to prevent a very small probalility ,I added the following judgment and tried to re-read the result when I could't get the correct respond.
+
+      
+    /*GerKeypair success*/
+    if (rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+    {
+        HSMVSemphre();
+        pthread_mutex_unlock(&hsm_mutex_pthread);
+        return sucess;
+    }
+    else if (rx_buff[0] == 0x69 && rx_buff[1] == 0x85)/*GerKeypair fail*/
+    {
+        HSMVSemphre();
+        pthread_mutex_unlock(&hsm_mutex_pthread);
+        return fail;
+    }
+    else/*Gen KeyPair not done .waitting a fix time ,and read result again */
+    {
+
+        HSMMsDelay(DELAY_OF_GEN_KEY_PAIR);
+        while (HSMGetBusystatus())
+            ;
+        ret = HSMRead(rx_buff, rx_buff_len);
+        #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+        hex_dump(rx_buff, rx_buff_len, 16, "GenKeyPair rx:");
+        #endif
+        if (ret != 0)
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return fail;
+        }      
+        /*GerKeypair success*/
+        if (rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return sucess;
+        }
+        else
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return fail; 
+        }
+        
+    }
