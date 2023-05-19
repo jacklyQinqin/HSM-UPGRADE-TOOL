@@ -49,6 +49,34 @@
 
 #include "DownLoadFile.h"
 
+#define DELAY_OF_IMPORT_PUB_KEY             (1)
+#define DELAY_OF_IMPORT_PRI_KEY             (1)
+#define DELAY_OF_EXPORT_PUB_KEY             (1)
+#define DELAY_OF_EXPORT_PRI_KEY             (1)
+#define DELAY_OF_READ_VERISON               (1)
+#define DELAY_OF_READ_FAC                   (1)
+#define DELAY_OF_SYNC                       (1)
+#define DELAY_OF_GEN_KEY_PAIR               (50)
+#define DELAY_OF_SET_ID                     (10)
+#define DELAY_OF_SM2_READ_RESLUT            (1)
+#define DELAY_OF_SM2_ENCRYPT                (10)
+#define DELAY_OF_SM2_DECRYPT                (8)
+#define DELAY_OF_SM2_E_SIGN                 (8)  
+#define DELAY_OF_SM2_E_VERIFY               (10) 
+#define DELAY_OF_SM2_M_SIGN                 (8)  
+#define DELAY_OF_SM2_M_VERIFY               (10)  
+#define DELAY_OF_SM2_DECOMPRESS             (8)
+#define PIN_CONFIRM                         (1)
+#define PIN_CANCEL                          (1)
+#define PIN_CHANGE                          (10)
+#define DELAY_OF_SM4_IMPROT_KEY      	    (8) 
+#define DELAY_OF_SM4_ENCRYPT_DECRYPT        (10) 
+#define DELAY_OF_RESTORE_ALL_KEYPAIR        (800)
+#define DELAY_OF_MOD_ADD                    (2)
+#define DELAY_OF_GET_Bij                    (5) 
+#define DELAY_OF_GET_Qij                    (5) 
+#define DELAY_OF_GET_RANDOM                 (1)
+
 
 
 /*创建一个全局的锁*/
@@ -236,7 +264,7 @@ unsigned long CosReadVersion(unsigned char *version)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(2);
+    HSMMsDelay(DELAY_OF_READ_VERISON);
     ret = HSMRead(rx_buff, rx_buff_len);
     if (ret != 0)
     {
@@ -308,7 +336,7 @@ unsigned long GenKeyPair(unsigned long index)
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(50);
+    HSMMsDelay(DELAY_OF_GEN_KEY_PAIR);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -321,15 +349,52 @@ unsigned long GenKeyPair(unsigned long index)
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
+
+    /*GerKeypair success*/
     if (rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
     {
         HSMVSemphre();
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return sucess;
     }
-     HSMVSemphre();
-         pthread_mutex_unlock(&hsm_mutex_pthread);
-    return fail;
+    else if (rx_buff[0] == 0x69 && rx_buff[1] == 0x85)/*GerKeypair fail*/
+    {
+        HSMVSemphre();
+        pthread_mutex_unlock(&hsm_mutex_pthread);
+        return fail;
+    }
+    else/*Gen KeyPair not done .waitting a fix time ,andread result again */
+    {
+
+        HSMMsDelay(DELAY_OF_GEN_KEY_PAIR);
+        while (HSMGetBusystatus())
+            ;
+        ret = HSMRead(rx_buff, rx_buff_len);
+        #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+        hex_dump(rx_buff, rx_buff_len, 16, "GenKeyPair rx:");
+        #endif
+        if (ret != 0)
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return fail;
+        }      
+        /*GerKeypair success*/
+        if (rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return sucess;
+        }
+        else
+        {
+            HSMVSemphre();
+            pthread_mutex_unlock(&hsm_mutex_pthread);
+            return fail; 
+        }
+        
+    }
+ 
 }
 
 /****************************************************************\
@@ -386,7 +451,7 @@ unsigned long SM2SetID(unsigned long index, unsigned char *sm2_id, unsigned char
         return fail;
     }
 
-    HSMMsDelay(2);
+    HSMMsDelay(DELAY_OF_SET_ID);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -460,7 +525,7 @@ unsigned long ImportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_IMPORT_PUB_KEY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -537,7 +602,7 @@ unsigned long ImportSM2Prikey(unsigned long index, unsigned char *prikey_d)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(2);
+    HSMMsDelay(DELAY_OF_IMPORT_PRI_KEY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -611,7 +676,7 @@ unsigned long ExportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_EXPORT_PUB_KEY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -629,7 +694,7 @@ unsigned long ExportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
         
         memcpy(pubkey_x, &rx_buff[2], 32);
         memcpy(pubkey_y, &rx_buff[34], 32);
-         HSMVSemphre();
+        HSMVSemphre();
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return sucess;
     }
@@ -690,7 +755,7 @@ unsigned long ExportSM2Prikey(unsigned long index, unsigned char *prikey_d)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(2);
+    HSMMsDelay(DELAY_OF_EXPORT_PRI_KEY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -759,6 +824,10 @@ unsigned long SM2SingleVerify(unsigned long pubkey_index, unsigned char *p_org_d
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
 
+    if(org_len == 0)
+    {
+        printf("len of org errror!\n");
+    }
     HSMUsDelay(VERIFY_DELAY);
     while (HSMGetBusystatus())
         ;
@@ -772,7 +841,9 @@ unsigned long SM2SingleVerify(unsigned long pubkey_index, unsigned char *p_org_d
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-     HSMMsDelay(10);
+    
+    ret  = (org_len + 15)/16;
+    HSMMsDelay(DELAY_OF_SM2_M_VERIFY*ret);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -851,7 +922,9 @@ unsigned long SM2Sign(unsigned long prikey_index, unsigned char *p_org_data, uns
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(5);
+    
+    ret = (org_len+15) /16;
+    HSMMsDelay(DELAY_OF_SM2_M_SIGN * ret);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -931,7 +1004,7 @@ unsigned long SM2SignEValue(unsigned long prikey_index, unsigned char *e,unsigne
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(5);
+    HSMMsDelay(DELAY_OF_SM2_E_SIGN);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1011,7 +1084,7 @@ unsigned long PinConfirm(unsigned char *pin_value, unsigned long len_of_pin)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(PIN_CONFIRM);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1087,7 +1160,7 @@ unsigned long PinConfirmCancel(unsigned char *pin_value, unsigned long len_of_pi
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(2);
+    HSMMsDelay(PIN_CANCEL);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1164,7 +1237,7 @@ unsigned long PinChange(unsigned char *old_pin_value, unsigned char *new_pin_val
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(5);
+    HSMMsDelay(PIN_CHANGE);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1240,8 +1313,8 @@ unsigned long SyncStatus(void)
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
 
+    HSMMsDelay(DELAY_OF_SYNC);
     while (HSMGetBusystatus())
         ;
 #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
@@ -1371,6 +1444,11 @@ unsigned long SM2Encrypt(unsigned long index, unsigned char *message, unsigned l
     tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
+    if(len == 0)
+    {
+        printf("SM2Encrypt len error.!\n");
+        return 1;
+    }
 
     while (HSMGetBusystatus())
         ;
@@ -1384,7 +1462,8 @@ unsigned long SM2Encrypt(unsigned long index, unsigned char *message, unsigned l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(10);
+    ret = (len + 15) /16;
+    HSMMsDelay(DELAY_OF_SM2_ENCRYPT*ret);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1429,7 +1508,7 @@ unsigned long SM2Encrypt(unsigned long index, unsigned char *message, unsigned l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_SM2_READ_RESLUT);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1507,6 +1586,11 @@ unsigned long SM2Decrypt(unsigned long index, unsigned char *message, unsigned l
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
 
+
+    if(len == 0)
+    {
+        printf("SM2Decrypt len error !\n");
+    }
     /*Watting for HSM free.*/
     while (HSMGetBusystatus())
         ;
@@ -1521,7 +1605,9 @@ unsigned long SM2Decrypt(unsigned long index, unsigned char *message, unsigned l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(10);
+
+    ret = (len+15) /  16;
+    HSMMsDelay(DELAY_OF_SM2_DECRYPT*ret);
     /*Watting for HSM free.*/
     while (HSMGetBusystatus())
         ;
@@ -1568,7 +1654,7 @@ unsigned long SM2Decrypt(unsigned long index, unsigned char *message, unsigned l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_SM2_READ_RESLUT);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1645,7 +1731,7 @@ unsigned long ReadFactoryNumber(unsigned char *fac_num)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_READ_FAC);
     ret = HSMRead(rx_buff, rx_buff_len);
     if (ret != 0)
     {
@@ -1721,7 +1807,7 @@ unsigned long SM4ImportKey(unsigned long index, unsigned char *key)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_SM4_IMPROT_KEY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1789,7 +1875,11 @@ unsigned long SM4Encrpyt(unsigned long index, unsigned char *in, unsigned long l
     tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
-
+    if((len==0) || (len%16))
+    {
+        printf("sm4 len error !\n");
+        return 1;
+    }
     while (HSMGetBusystatus())
         ;
 #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
@@ -1802,7 +1892,9 @@ unsigned long SM4Encrpyt(unsigned long index, unsigned char *in, unsigned long l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(10);
+
+    ret = (len+15) / 16;
+    HSMMsDelay(DELAY_OF_SM4_ENCRYPT_DECRYPT*16);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1871,6 +1963,13 @@ unsigned long SM4Decrpyt(unsigned long index, unsigned char *in, unsigned long l
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
 
+
+    if((len==0) || (len%16))
+    {
+        printf("sm4 len error !\n");
+        return 1;
+    }
+
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
@@ -1883,7 +1982,10 @@ unsigned long SM4Decrpyt(unsigned long index, unsigned char *in, unsigned long l
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(10);
+
+
+    ret = (len+15) / 16;
+    HSMMsDelay(DELAY_OF_SM4_ENCRYPT_DECRYPT*16);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -1953,10 +2055,10 @@ unsigned long SM2PointerDecompress(unsigned char * gx, ISTECCPointDecompressMode
     if((mode != ISTECC_POINT_DECOMPRESS_2) &&( mode != ISTECC_POINT_DECOMPRESS_3))
     {
         HSMVSemphre();
-         pthread_mutex_unlock(&hsm_mutex_pthread);
+        pthread_mutex_unlock(&hsm_mutex_pthread);
         return ERROR_DECOMPRESS_MODE_NO_SUPPORT;
     }
-    HSMMsDelay(1);
+    
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
@@ -1969,7 +2071,7 @@ unsigned long SM2PointerDecompress(unsigned char * gx, ISTECCPointDecompressMode
              pthread_mutex_unlock(&hsm_mutex_pthread);
             return fail;
         }
-        HSMMsDelay(2);
+        HSMMsDelay(DELAY_OF_SM2_DECOMPRESS);
         while (HSMGetBusystatus())
             ;
 
@@ -2183,7 +2285,7 @@ unsigned long SM2Getbij(unsigned char *kS,unsigned long i , unsigned long j)
              pthread_mutex_unlock(&hsm_mutex_pthread);
             return fail;
         }
-        HSMMsDelay(5);
+        HSMMsDelay(DELAY_OF_GET_Bij);
         while (HSMGetBusystatus())
             ;
 
@@ -2290,7 +2392,7 @@ unsigned long SM2Getqij(unsigned char *kE,unsigned long i , unsigned long j)
              pthread_mutex_unlock(&hsm_mutex_pthread);
             return fail;
         }
-        HSMMsDelay(5);
+        HSMMsDelay(DELAY_OF_GET_Qij);
         while (HSMGetBusystatus())
             ;
 
@@ -2352,7 +2454,7 @@ unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
     #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
 		hex_dump(tx_buff,tx_buff_len, 16,"KDF_ModAdd tx:");
     #endif	
-		HSMMsDelay(20);
+		HSMMsDelay(DELAY_OF_MOD_ADD);
 		while(HSMGetBusystatus());
 		ret = HSMRead(rx_buff,rx_buff_len);
     #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)	
@@ -2651,7 +2753,7 @@ unsigned long  V2XDeviceGetRandom(unsigned char * buff,unsigned long len)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
+    HSMMsDelay(DELAY_OF_GET_RANDOM);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -2794,8 +2896,8 @@ unsigned long SM2EValueVerify(unsigned long pubkey_index, unsigned char *e,unsig
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(1);
-    HSMMsDelay(10);
+
+    HSMMsDelay(DELAY_OF_SM2_E_VERIFY);
     while (HSMGetBusystatus())
         ;
     ret = HSMRead(rx_buff, rx_buff_len);
@@ -2843,7 +2945,7 @@ unsigned long HSMRestoreKeys(void)
          pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-    HSMMsDelay(800);
+    HSMMsDelay(DELAY_OF_RESTORE_ALL_KEYPAIR);
     ret = HSMRead(rx_buff, rx_buff_len);
     if (ret != 0)
     {
