@@ -157,3 +157,24 @@ MERGE HSM-TEST-DEMO AND HSM-UPGRADE-TOOL.SO WE WILL GET  UNIFORM DRIVER.
         }
         
     }
+
+## verison 1.8.9.8(6)
+Checked the API for errors.
+Unified HSMRead processing,Print information only at the wrong time.Now they look at this:
+
+    while (HSMGetBusystatus())
+        ;
+    ret = HSMRead(rx_buff, rx_buff_len);
+    if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+    {
+        HSMVSemphre();
+        pthread_mutex_unlock(&hsm_mutex_pthread);
+        return sucess;
+    }
+
+    #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+    hex_dump(rx_buff, rx_buff_len, 16, "SyncStatus rx:");
+    #endif
+    HSMVSemphre();
+    pthread_mutex_unlock(&hsm_mutex_pthread);
+    return fail;
