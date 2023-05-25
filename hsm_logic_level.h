@@ -214,6 +214,6 @@ unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p);
 
 
 int HSMSempohreInit(void);
-int  HSMThreadMutexInit(void);
+int HSMThreadMutexInit(void);
 int HSMSempohreDeInit(void);
 #endif

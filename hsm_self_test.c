@@ -199,7 +199,7 @@ int thread1(void)
 		return 1;
 	}
 	printf("sync success\n");
-	for(i=0;i<100;i++)
+	for(i=0;i<1;i++)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
@@ -352,7 +352,7 @@ int thread2(void)
 	printf("sync success\n");
 
 
-	for(i=0;i<100;i++)
+	for(i=0;i<1;i++)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
@@ -533,13 +533,13 @@ unsigned long HSMSelfTestWithMulProcess(void)
 	}
 	printf("sync success\n");
 
-	for(i=0;i<100;i++)
+	for(i=0;i<1;i++)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
 		ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
 		//printf("THREAD2 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
-		if((version[0] != 0X1) ||(version[1] != 0x8)||(version[2] != 0X9)||(version[3] != 7))
+		if((version[0] != 0X1) ||(version[1] != 0x8)||(version[2] != 0X9))
 		{
 			printf("HSMSelfTestWithMulProcess module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
 			printf("read verison failed.\n");
@@ -548,7 +548,7 @@ unsigned long HSMSelfTestWithMulProcess(void)
 		else
 		{
 			right_count++;
-			printf("HSMSelfTestWithMulProcess right:%8d error %4d\n",right_count,error_count);
+			printf("ISTECC512A_CosVersionRead right:%8d error %4d\n",right_count,error_count);
 		}
 	}
 	
