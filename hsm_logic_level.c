@@ -2265,8 +2265,61 @@ unsigned long SM2Getqij(unsigned char *kE,unsigned long i , unsigned long j)
 THIS FUNCITON IS  si,j = (bi,j + c) mod l 
 in order to facilitate debugging, i set parameter 1 and parameter 2 as exportable.
 after debugging, these parameters can not be exprted for safety.juest can be used.
-*/
+
+//Modify History:
 unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
+2023-6-6
+unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_sij)
+
+
+*/
+// unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
+// {
+
+//     unsigned long ret = 0;
+//     unsigned long tx_buff_len = 0x4c; /*CMD*/
+//     unsigned long rx_buff_len =34;
+//     const unsigned char kdf_mod_add[12] = {0XBF,0X3B,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00};
+//     pthread_mutex_lock(&hsm_mutex_pthread);
+//     HSMPSemphre();
+//     memcpy(tx_buff,kdf_mod_add,12);
+//     tx_buff[6] = (tx_buff_len)/256;
+//     tx_buff[7] = (tx_buff_len)%256;
+//     tx_buff[11] = 0;//no index.
+//     memcpy(&tx_buff[12],bij,32);
+//     memcpy(&tx_buff[12+32],c,32);
+//     // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
+//     while(HSMGetBusystatus());
+//     ret =  HSMWrite(tx_buff,tx_buff_len);
+//     if(0!=ret)
+//     {
+//         HSMVSemphre();
+//             pthread_mutex_unlock(&hsm_mutex_pthread);
+//         return fail;
+//     }
+// // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+// // 	hex_dump(tx_buff,tx_buff_len, 16,"KDF_ModAdd tx:");
+// // #endif	
+//     HSMMsDelay(DELAY_OF_MOD_ADD);
+//     while(HSMGetBusystatus());
+//     ret = HSMRead(rx_buff,rx_buff_len);
+//     if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+//     {
+//         memcpy(out_sij,rx_buff+2,32);
+//         HSMVSemphre();
+//         pthread_mutex_unlock(&hsm_mutex_pthread);
+//         return sucess;
+//     }
+
+//     #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+//     hex_dump(rx_buff, rx_buff_len, 16, "ModAdd rx:");
+//     #endif
+//     HSMVSemphre();
+//     pthread_mutex_unlock(&hsm_mutex_pthread);
+//     return fail;
+// }
+
+unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_sij)
 {
 
     unsigned long ret = 0;
@@ -2311,6 +2364,8 @@ unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
     pthread_mutex_unlock(&hsm_mutex_pthread);
     return fail;
 }
+
+
 
 /*This fucntion contains two parts:
 1. SM2 decode the  .ciphertext_sm4_key( the cKey（v,t,c format)   and get sm4 key 

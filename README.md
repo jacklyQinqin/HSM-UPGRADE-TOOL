@@ -178,3 +178,21 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
     HSMVSemphre();
     pthread_mutex_unlock(&hsm_mutex_pthread);
     return fail;
+
+## verison 1.8.9.9(01)
+### API UPGRADE INSTRUCTIONS:
+	1.Modify the ModAdd Function
+	from 
+	unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
+	to 
+	unsigned long ModAdd(unsigned  int  bij_index,unsigned  char  *c,unsigned  char  *out_sij)
+	you need to change the key deriver flow.
+	just pass the bij_index to ModAdd,don't need export prikey.
+	
+	2.Deltel the export prikey API. And some testing  code was be modify to fit it.
+	3.Modify the delay of ImportSM2Prikey  to 20ms.The max result of the test is 15ms.
+
+	NOTE: YOU NEED UPGRADE THE HSM CODE TO FIT HE NEW API.
+### HSM UPGRADE INSTRUCTIONS:
+	1.Modify the ModAdd function. You need pass bij_index to hsm not bij .
+	2.Modify the setId  funciton. Not stored to flash.(This's not needed.)
