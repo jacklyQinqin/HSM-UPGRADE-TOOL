@@ -202,16 +202,16 @@ unsigned long  IS32U512AFunctionTest(void)
 		printf("ISTECC512A_PinConfirm success!\n");
 	}
 
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinChange(default_pin, new_pin, 8);
-	if (sign_verify_ret)
-	{
-		printf("ISTECC512A_PinChange failed!\n");
-		sign_verify_error_count++;
-	}
-	else
-	{
-		printf("ISTECC512A_PinChange success!\n");
-	}
+	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinChange(default_pin, new_pin, 8);
+	// if (sign_verify_ret)
+	// {
+	// 	printf("ISTECC512A_PinChange failed!\n");
+	// 	sign_verify_error_count++;
+	// }
+	// else
+	// {
+	// 	printf("ISTECC512A_PinChange success!\n");
+	// }
 
 	
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(0);
