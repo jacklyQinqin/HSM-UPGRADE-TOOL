@@ -187,7 +187,7 @@ typedef struct
       unsigned int jINT,char * c,
       unsigned char * sij);
   //unsigned long  (*ISTECC512A_KDFGetsij)(char *sm4,char * in,char *out);
-  unsigned long (*ISTECC512A_ModAdd)(unsigned char *bij,unsigned char *c,unsigned char *out_sij);
+  unsigned long (*ISTECC512A_ModAdd)(unsigned int bij_index,unsigned char *c,unsigned char *out_sij);
   /*********resever************/
   /*Data store  reserved*/
 

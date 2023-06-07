@@ -191,6 +191,7 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
 	
 	2.Deltel the export prikey API. And some testing  code was be modify to fit it.
 	3.Modify the delay of ImportSM2Prikey  to 20ms.The max result of the test is 15ms.
+	4.Add new upgrade file DownloadFile18909.ini
 
 	NOTE: YOU NEED UPGRADE THE HSM CODE TO FIT HE NEW API.
 ### HSM UPGRADE INSTRUCTIONS:
