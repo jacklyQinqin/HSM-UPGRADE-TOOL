@@ -141,7 +141,7 @@ char SPI_DEV_NAME[100] = "/dev/spidev32766.0";
 int busy = 98;
 int reset = 96;
 
-#define HSM_HARDWARE_DEBUG 0
+#define HSM_HARDWARE_DEBUG	0
 
 
 //hardware init.

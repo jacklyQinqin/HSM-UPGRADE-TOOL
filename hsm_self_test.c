@@ -93,7 +93,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 			return (1);
 		}
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -245,7 +245,7 @@ int thread1(void)
 			return (1);
 		}
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -396,7 +396,7 @@ int thread2(void)
 			return (1);
 		}
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 

@@ -50,7 +50,7 @@
 #include "DownLoadFile.h"
 
 #define DELAY_OF_IMPORT_PUB_KEY             (1)
-#define DELAY_OF_IMPORT_PRI_KEY             (1)
+#define DELAY_OF_IMPORT_PRI_KEY             (20)
 #define DELAY_OF_EXPORT_PUB_KEY             (1)
 #define DELAY_OF_EXPORT_PRI_KEY             (1)
 #define DELAY_OF_READ_VERISON               (1)
@@ -689,53 +689,56 @@ unsigned long ExportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
 *				    None
 *
 * Remark:  If you call the key generation function, use this function to get a SM2 algorithm private key
+
+* Modify History:
+* 1.8.9.9 delete export pri key api.
 *
 \****************************************************************/
 unsigned long ExportSM2Prikey(unsigned long index, unsigned char *prikey_d)
 {
 
-    unsigned long ret = 0;
-    unsigned long tx_buff_len = IS32U512A_SM2_MODULE_CMD_LEN;
-    unsigned long rx_buff_len = 2 + IS32U512A_SM2_PRIKEY_LEN;
+    // unsigned long ret = 0;
+    // unsigned long tx_buff_len = IS32U512A_SM2_MODULE_CMD_LEN;
+    // unsigned long rx_buff_len = 2 + IS32U512A_SM2_PRIKEY_LEN;
 
-    const uint8_t export_sm2prikey_cmd[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0x07, 0x00, 0x00, 0x00, 0x00};
-    pthread_mutex_lock(&hsm_mutex_pthread);
-    HSMPSemphre();
-    memcpy(tx_buff, export_sm2prikey_cmd, IS32U512A_SM2_MODULE_CMD_LEN);
-    tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
-    tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
-    tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
+    // const uint8_t export_sm2prikey_cmd[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0x07, 0x00, 0x00, 0x00, 0x00};
+    // pthread_mutex_lock(&hsm_mutex_pthread);
+    // HSMPSemphre();
+    // memcpy(tx_buff, export_sm2prikey_cmd, IS32U512A_SM2_MODULE_CMD_LEN);
+    // tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
+    // tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
+    // tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
 
-    while (HSMGetBusystatus())
-        ;
-    ret = HSMWrite(tx_buff, tx_buff_len);   
+    // while (HSMGetBusystatus())
+    //     ;
+    // ret = HSMWrite(tx_buff, tx_buff_len);   
+    // // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+    // // hex_dump(tx_buff, tx_buff_len, 16, "ExportSM2Prikey tx:");
+    // // #endif
+    // if (0 != ret)
+    // {
+    //      HSMVSemphre();
+    //      pthread_mutex_unlock(&hsm_mutex_pthread);
+    //     return fail;
+    // }
+    // HSMMsDelay(DELAY_OF_EXPORT_PRI_KEY);
+    // while (HSMGetBusystatus())
+    //     ;
+    // ret = HSMRead(rx_buff, rx_buff_len);
+    // if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
+    // {
+    //     memcpy(prikey_d, &rx_buff[2], 32);
+    //     HSMVSemphre();
+    //     pthread_mutex_unlock(&hsm_mutex_pthread);
+    //     return sucess;
+    // }
+
     // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    // hex_dump(tx_buff, tx_buff_len, 16, "ExportSM2Prikey tx:");
+    // hex_dump(rx_buff, rx_buff_len, 16, "ExportSM2Prikey rx:");
     // #endif
-    if (0 != ret)
-    {
-         HSMVSemphre();
-         pthread_mutex_unlock(&hsm_mutex_pthread);
-        return fail;
-    }
-    HSMMsDelay(DELAY_OF_EXPORT_PRI_KEY);
-    while (HSMGetBusystatus())
-        ;
-    ret = HSMRead(rx_buff, rx_buff_len);
-    if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
-    {
-        memcpy(prikey_d, &rx_buff[2], 32);
-        HSMVSemphre();
-        pthread_mutex_unlock(&hsm_mutex_pthread);
-        return sucess;
-    }
-
-    #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    hex_dump(rx_buff, rx_buff_len, 16, "ExportSM2Prikey rx:");
-    #endif
-    HSMVSemphre();
-    pthread_mutex_unlock(&hsm_mutex_pthread);
-    return fail;
+    // HSMVSemphre();
+    // pthread_mutex_unlock(&hsm_mutex_pthread);
+     return fail;
 }
 
 /****************************************************************\
@@ -2270,77 +2273,31 @@ after debugging, these parameters can not be exprted for safety.juest can be use
 unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
 2023-6-6
 unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_sij)
-
-
 */
-// unsigned long ModAdd(unsigned char *bij,unsigned char *c,unsigned char *out_sij)
-// {
-
-//     unsigned long ret = 0;
-//     unsigned long tx_buff_len = 0x4c; /*CMD*/
-//     unsigned long rx_buff_len =34;
-//     const unsigned char kdf_mod_add[12] = {0XBF,0X3B,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00};
-//     pthread_mutex_lock(&hsm_mutex_pthread);
-//     HSMPSemphre();
-//     memcpy(tx_buff,kdf_mod_add,12);
-//     tx_buff[6] = (tx_buff_len)/256;
-//     tx_buff[7] = (tx_buff_len)%256;
-//     tx_buff[11] = 0;//no index.
-//     memcpy(&tx_buff[12],bij,32);
-//     memcpy(&tx_buff[12+32],c,32);
-//     // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
-//     while(HSMGetBusystatus());
-//     ret =  HSMWrite(tx_buff,tx_buff_len);
-//     if(0!=ret)
-//     {
-//         HSMVSemphre();
-//             pthread_mutex_unlock(&hsm_mutex_pthread);
-//         return fail;
-//     }
-// // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-// // 	hex_dump(tx_buff,tx_buff_len, 16,"KDF_ModAdd tx:");
-// // #endif	
-//     HSMMsDelay(DELAY_OF_MOD_ADD);
-//     while(HSMGetBusystatus());
-//     ret = HSMRead(rx_buff,rx_buff_len);
-//     if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
-//     {
-//         memcpy(out_sij,rx_buff+2,32);
-//         HSMVSemphre();
-//         pthread_mutex_unlock(&hsm_mutex_pthread);
-//         return sucess;
-//     }
-
-//     #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(rx_buff, rx_buff_len, 16, "ModAdd rx:");
-//     #endif
-//     HSMVSemphre();
-//     pthread_mutex_unlock(&hsm_mutex_pthread);
-//     return fail;
-// }
 
 unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_sij)
 {
 
     unsigned long ret = 0;
-    unsigned long tx_buff_len = 0x4c; /*CMD*/
+    unsigned long tx_buff_len = 0x2c; /*CMD_LEN*/
     unsigned long rx_buff_len =34;
     const unsigned char kdf_mod_add[12] = {0XBF,0X3B,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00,0X00};
     pthread_mutex_lock(&hsm_mutex_pthread);
     HSMPSemphre();
     memcpy(tx_buff,kdf_mod_add,12);
+
+    tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = bij_index;
     tx_buff[6] = (tx_buff_len)/256;
     tx_buff[7] = (tx_buff_len)%256;
-    tx_buff[11] = 0;//no index.
-    memcpy(&tx_buff[12],bij,32);
-    memcpy(&tx_buff[12+32],c,32);
+ 
+    memcpy(&tx_buff[12],c,32);
     // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
     while(HSMGetBusystatus());
     ret =  HSMWrite(tx_buff,tx_buff_len);
     if(0!=ret)
     {
         HSMVSemphre();
-            pthread_mutex_unlock(&hsm_mutex_pthread);
+        pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
 // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
@@ -2388,29 +2345,29 @@ what of this funciton do ?>
       unsigned char * sij)
 {
 
-    unsigned char bij[32];
-    unsigned long ret = 0;
-    unsigned long tx_buff_len = 0; // 1byte is length of mode.
-    unsigned long rx_buff_len = 0;
+    // unsigned char bij[32];
+     unsigned long ret = 1;
+    // unsigned long tx_buff_len = 0; // 1byte is length of mode.
+    // unsigned long rx_buff_len = 0;
 
-    ret = ImportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX,seed_a);
-    ret = SM2Getbij(kS,iINT,jINT);
-    if(ret)
-    {
-        printf("SM2Getbij failed!\n");
-    }
-    ret = ExportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX-2,bij);
-    if(ret)
-    {
-        printf("ExportSM2Prikey failed!\n");
-    }
+    // ret = ImportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX,seed_a);
+    // ret = SM2Getbij(kS,iINT,jINT);
+    // if(ret)
+    // {
+    //     printf("SM2Getbij failed!\n");
+    // }
+    // ret = ExportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX-2,bij);
+    // if(ret)
+    // {
+    //     printf("ExportSM2Prikey failed!\n");
+    // }
 
 
-    ret = ModAdd(bij,c,sij);
-    if(ret)
-    {
-        printf("ret failed!\n");
-    }
+    // ret = ModAdd(IS32U512A_CONST_SIGN_FACTOR_INDEX-2,c,sij);
+    // if(ret)
+    // {
+    //     printf("ret failed!\n");
+    // }
     return ret;
 }
 

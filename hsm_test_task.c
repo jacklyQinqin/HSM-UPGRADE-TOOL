@@ -236,16 +236,16 @@ unsigned long  IS32U512AFunctionTest(void)
 		printf("ISTECC512A_SM2ExportPubkey success!\n");
 	}
 	
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
-	if (sign_verify_ret)
-	{
-		printf("ISTECC512A_SM2ExportPrikey failed!\n");
-		sign_verify_error_count++;
-	}
-	else
-	{
-		printf("ISTECC512A_SM2ExportPrikey success!\n");
-	}
+	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
+	// if (sign_verify_ret)
+	// {
+	// 	printf("ISTECC512A_SM2ExportPrikey failed!\n");
+	// 	sign_verify_error_count++;
+	// }
+	// else
+	// {
+	// 	printf("ISTECC512A_SM2ExportPrikey success!\n");
+	// }
 
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPubkey(0, sign_verify_temp_pubkey,
 																					sign_verify_temp_pubkey + 32);
@@ -259,16 +259,16 @@ unsigned long  IS32U512AFunctionTest(void)
 		printf("ISTECC512A_SM2ImportPubkey success!\n");
 	}
 
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPrikey(0, sign_verify_temp_prikey);
-	if (sign_verify_ret)
-	{
-		printf("ISTECC512A_SM2ImportPrikey failed!\n");
-		sign_verify_error_count++;
-	}
-	else
-	{
-		printf("ISTECC512A_SM2ImportPrikey success!\n");
-	}
+	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPrikey(0, sign_verify_temp_prikey);
+	// if (sign_verify_ret)
+	// {
+	// 	printf("ISTECC512A_SM2ImportPrikey failed!\n");
+	// 	sign_verify_error_count++;
+	// }
+	// else
+	// {
+	// 	printf("ISTECC512A_SM2ImportPrikey success!\n");
+	// }
 
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2SetID(0, sign_verify_id, sign_verify_id_len);
 	if (sign_verify_ret)
@@ -840,13 +840,13 @@ static int test_complete_private_key_derivative(void)
         printf("ISTECC512A_SM2CompleteKDF success\n");
     }
 
-    ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
-    if (ret)
-    {
-        printf("ExportSM2Prikey error!\n");
-    }
-    printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
-    hex_dump(pri_key, 32, 16, "PRI_KEY:");
+    // ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
+    // if (ret)
+    // {
+    //     printf("ExportSM2Prikey error!\n");
+    // }
+    // printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
+    // hex_dump(pri_key, 32, 16, "PRI_KEY:");
     return ret;
 }
 
@@ -957,13 +957,13 @@ static int test_encrypt_and_sign_key_derivative(void)
         printf("ISTECC512A_SM2EncryptKeyKDF success\n");
     }
 
-    ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
-    if (ret)
-    {
-        printf("ExportSM2Prikey error!\n");
-    }
-    printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
-    hex_dump(pri_key, 32, 16, "PRI_KEY:");
+    // ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
+    // if (ret)
+    // {
+    //     printf("ExportSM2Prikey error!\n");
+    // }
+    // printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
+    // hex_dump(pri_key, 32, 16, "PRI_KEY:");
     return ret;
 }
 
@@ -1242,15 +1242,15 @@ unsigned long  IS32U512ASM2EncyprtDecryptTest(void)
 		printf("ISTECC512A_SM2ExportPubkey success!\n");
 	}
 	
-	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
-	if (sign_verify_ret)
-	{
-		printf("ISTECC512A_SM2ExportPrikey failed!\n");
-	}
-	else
-	{
-		printf("ISTECC512A_SM2ExportPrikey success!\n");
-	}
+	// ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
+	// if (sign_verify_ret)
+	// {
+	// 	printf("ISTECC512A_SM2ExportPrikey failed!\n");
+	// }
+	// else
+	// {
+	// 	printf("ISTECC512A_SM2ExportPrikey success!\n");
+	// }
 
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPubkey(0, sign_verify_temp_pubkey,
 																					sign_verify_temp_pubkey + 32);
@@ -1580,3 +1580,55 @@ unsigned long  IS32U512ASm2SignEvalueAndVerifyEvalueWithPubKeyIndex(void)
 	/*deinit the hardware. spi interface and reset,busy io.release the source*/
 	HSMHardwareDeinit();
 }
+
+
+
+unsigned long ISTECCMODADDTest(void)
+{
+	int ret;
+	int i;
+	unsigned char bij_test[32] = {
+		0X8C,0X17,0X50,0X1C,0XF0,0X0E,0X54,0XE6,0X17,0X83,0X9D,0XFB,0XFC,0XED,0X49,0X75,0X06,0XB6,0X59,0X70,0X55,0X26,0XCB,0XE2,0XC4,0XC6,0X65,0XC7,0XEF,0X94,0XD0,0XAB};
+	unsigned char c_test[32] = {
+		0X06,0X25,0X84,0X32,0X0A,0XEA,0XFA,0X3E,0XF7,0X7B,0XB2,0XE2,0X3B,0X10,0X6D,0X4B,0XF4,0XC3,0X9A,0X47,0X2D,0XF3,0X22,0X5D,0X49,0XEC,0X76,0X5C,0X4C,0XA3,0X76,0X8C};
+	unsigned char result[32];
+	unsigned char compare[32] = {
+		0X92,0X3C,0XD4,0X4E,0XFA,0XF9,0X4F,0X25,0X0E,0XFF,0X50,0XDE,0X37,0XFD,0XB6,0XC0,0XFB,0X79,0XF3,0XB7,0X83,0X19,0XEE,0X40,0X0E,0XB2,0XDC,0X24,0X3C,0X38,0X47,0X37};
+	/*Create a pointer struct and Init it. */
+	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
+	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
+	/*Init the hardware . spi interface  and reset,busy io*/
+	HSMHardwareInit(SPI_SPEED_10M);
+
+
+	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
+	if (ret)
+	{
+		printf("sync failed\n");
+		HSMHardwareDeinit();
+		return 1;
+	}
+	printf("sync success\n");
+
+	for(i=0;i<16;i++)
+	{
+		/*1.set bij*/
+		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPrikey(i,bij_test);
+	}
+	for(i=0;i<16;i++)
+	{
+		
+		/*2.mod add*/
+		ISTECC512AFunctionPointerStructure.ISTECC512A_ModAdd(i,c_test,result);
+		hex_dump(result,32,16,"RESULT:");
+		if(memcmp(result,compare,32))
+		{
+			printf("Mod add failed! comapre no pass\n");
+			return 1;
+		}
+	}
+	printf("Mod add test success! comapre  pass\n");
+	HSMHardwareDeinit();
+	return 0;
+}
+

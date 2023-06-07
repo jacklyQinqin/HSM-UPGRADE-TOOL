@@ -37,6 +37,7 @@
 #define SELF_TEST_WITH_MUTEX	0X0D  //13  TEST MUL PTHREAD.
 #define SELF_TEST_MUL_PROCESS	0X0E  //14  TEST MUL PROCESS.
 #define HSM_ONE_KEY_RESOTRE		0X0F  //15  TEST ONE KEY ERSTORE.
+#define HSM_MODADD_TEST			0X10  //15  TEST ONE KEY ERSTORE.
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 static void pabort(const char *s)
 {
@@ -62,6 +63,7 @@ static void print_usage_English(void)
 	printf("  func 13: SELF TEST WITH MUTEX:MUL PHTREAD\n");
 	printf("  func 14: HSM MUL PROCESS TEST ,YOU NEED FIRST RUN \n");
 	printf("  func 15: HSM TEST ONE MESSAGE RESTORE ALL THE KEY PAIRS\n");
+	printf("  func 16: MOD ADD TEST\n");
 	printf("  input parameter with the test number\n");
 }
 
@@ -167,6 +169,9 @@ int main(int argc, char *argv[])
 			{
 				printf("HSMOneKeyRestore failed!\n");
 			}
+			break;
+		case HSM_MODADD_TEST:
+			ISTECCMODADDTest();
 			break;
 		default:
 			printf("not support!\n");

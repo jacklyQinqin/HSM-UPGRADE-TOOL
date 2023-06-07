@@ -98,7 +98,7 @@ unsigned long HSMOneKeyRestore(void)
 			return (1);
 		}
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -106,8 +106,8 @@ unsigned long HSMOneKeyRestore(void)
     for(i=0;i<15;i++)
 	{	
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
-        hex_dump(sm2_private_key,32,32,"PRIKEY:");
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+        // hex_dump(sm2_private_key,32,32,"PRIKEY:");
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
         hex_dump(sm2_public_key,32,64,"PUBKEY:");
 	}
@@ -122,8 +122,8 @@ unsigned long HSMOneKeyRestore(void)
     for(i=0;i<15;i++)
 	{	
 		printf("INDEX %d:\n",i);
-		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
-        hex_dump(sm2_private_key,32,32,"PRIKEY:");
+		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
+        // hex_dump(sm2_private_key,32,32,"PRIKEY:");
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
         hex_dump(sm2_public_key,32,64,"PUBKEY:");
 	}
