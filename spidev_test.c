@@ -16,9 +16,10 @@
 #include <linux/types.h>
 #include <sys/time.h>
 
+#include "hsm_self_test.h"
 #include "hsm_test_task.h"
 #include "hsm_upgrade_test.h"
-
+#include "hsm_one_key_restore_test.h"
 
 /*TEST MODE*/
 #define READ_VERISON   			0x00
@@ -37,7 +38,7 @@
 #define SELF_TEST_WITH_MUTEX	0X0D  //13  TEST MUL PTHREAD.
 #define SELF_TEST_MUL_PROCESS	0X0E  //14  TEST MUL PROCESS.
 #define HSM_ONE_KEY_RESOTRE		0X0F  //15  TEST ONE KEY ERSTORE.
-#define HSM_MODADD_TEST			0X10  //15  TEST ONE KEY ERSTORE.
+#define HSM_MODADD_TEST			0X10  //16  TEST MOD ADD
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 static void pabort(const char *s)
 {
@@ -53,10 +54,7 @@ static void print_usage_English(void)
 	printf("  author: Qinxd\n");
 	printf("  func 0: Read moudle verison(maybe 1.8.7)\n");
 	printf("  func 1: All function test\n");
-	printf("  func 2: App Erase test\n");
-	printf("  func 3: App Update\n");
 	printf("  func 4: Pointer Descompress\n");
-	printf("  func 5: KEY_DERIVE\n");
 	printf("  func 10: E+RS verify mode\n");
 	printf("  func 11: HSM E sign test\n");
 	printf("  func 12: HSM Self test: SIGN-VERIFY-ENCODE-DECODE\n");
@@ -111,41 +109,19 @@ int main(int argc, char *argv[])
 		case ALL_FUN_TEST:
 			IS32U512AFunctionTest();
 			break;
-		case APP_ERASE:
-			printf("Please Input 1234 to make sure what you want to do.\n");
-			scanf("%d",&ret);
-			if(ret==1234){
-				printf("APP erase!\n");
-				//ISTECCEraseAPPTest();
-				ISTECCEraseAPPTest2();
-			}
-			break;
-		case APP_UPDATE:
-			// printf("Please Input 1234 to make sure what you want to do.\n");
-			// scanf("%d",&ret);
-			// printf("update vserison 1.8.8\n");
-			// if(ret==1234){
-			// 	printf("APP Update!\n");
-			// 	ISTECCUpdateTest();
-			// }
-			break;
 		case POINTER_DECOMPRESS:
 			printf("ISTECCSPointerDecompressTest TEST.");
 			ISTECCSPointerDecompressTest();
-			break;
-		case KEY_DERIVE:
-			ISTECCKeyDeriveTest();
-			break;
-		case SM4_CCM:
-			ISTECCSm4CcmTest();
 			break;
 		case SM2_ENCRYPT_DECRYPT:
 			IS32U512ASM2EncyprtDecryptTest();
 			break;
 		case SM2_VERIFY_E_RS:
 			IS32U512ASm2VerifyEvalueWithPubKeyIndex();
+			break;
 		case SM2_SIGN_E_VALUE:
 			IS32U512ASm2SignEvalueAndVerifyEvalueWithPubKeyIndex();	
+			break;
 		case SELF_TEST:
 			if(HSMSelfTest(test_loop))
 			{
@@ -153,16 +129,11 @@ int main(int argc, char *argv[])
 			}
 			break;
 		case SELF_TEST_WITH_MUTEX:
-			if(HSMSelfTestWithMultithreading())
-			{
-				printf("HSMSelfTestWithMultithreading failed!\n");
-			}
+			printf("1122233\n");
+			HSMSelfTestWithMultithreading();
 			break;
 		case SELF_TEST_MUL_PROCESS:
-			if(HSMSelfTestWithMulProcess())
-			{
-				printf("HSMSelfTestWithMulProcess failed!\n");
-			}
+			HSMSelfTestWithMulProcess();
 			break;
 		case HSM_ONE_KEY_RESOTRE:
 			if(HSMOneKeyRestore())

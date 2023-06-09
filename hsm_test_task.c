@@ -144,10 +144,6 @@ unsigned long  IS32U512AFunctionTest(void)
 	/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(SPI_SPEED_10M);
 	/*reset the 512A module*/
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	HSMReset();
 
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
@@ -202,18 +198,6 @@ unsigned long  IS32U512AFunctionTest(void)
 		printf("ISTECC512A_PinConfirm success!\n");
 	}
 
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinChange(default_pin, new_pin, 8);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("ISTECC512A_PinChange failed!\n");
-	// 	sign_verify_error_count++;
-	// }
-	// else
-	// {
-	// 	printf("ISTECC512A_PinChange success!\n");
-	// }
-
-	
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(0);
 	if (sign_verify_ret)
 	{
@@ -235,17 +219,7 @@ unsigned long  IS32U512AFunctionTest(void)
 	{
 		printf("ISTECC512A_SM2ExportPubkey success!\n");
 	}
-	
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("ISTECC512A_SM2ExportPrikey failed!\n");
-	// 	sign_verify_error_count++;
-	// }
-	// else
-	// {
-	// 	printf("ISTECC512A_SM2ExportPrikey success!\n");
-	// }
+
 
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPubkey(0, sign_verify_temp_pubkey,
 																					sign_verify_temp_pubkey + 32);
@@ -258,17 +232,6 @@ unsigned long  IS32U512AFunctionTest(void)
 	{
 		printf("ISTECC512A_SM2ImportPubkey success!\n");
 	}
-
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPrikey(0, sign_verify_temp_prikey);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("ISTECC512A_SM2ImportPrikey failed!\n");
-	// 	sign_verify_error_count++;
-	// }
-	// else
-	// {
-	// 	printf("ISTECC512A_SM2ImportPrikey success!\n");
-	// }
 
 	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2SetID(0, sign_verify_id, sign_verify_id_len);
 	if (sign_verify_ret)
@@ -335,6 +298,7 @@ unsigned long  IS32U512AFunctionTest(void)
 	sign_verify_error_count = 0;
 	/*deinit the hardware. spi interface and reset,busy io.release the source*/
 	HSMHardwareDeinit();
+	return 0;
 }
 
 /*
@@ -356,9 +320,6 @@ unsigned long  IS32U512AReadVerisonTest(void)
 
 	/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(SPI_SPEED_10M);
-	//HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	//HSMReset();
 
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
@@ -374,64 +335,16 @@ unsigned long  IS32U512AReadVerisonTest(void)
 	ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
 	printf("IS32U512A module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
 	/*deinit the hardware. spi interface and reset,busy io.release the source*/
-	//HSMHardwareDeinit();
+	HSMHardwareDeinit();
+	return 0;
 }
 
 /*Erase APP Test,If you not sure what you're doing, don't test it.
  */
 unsigned long  ISTECCEraseAPPTest(void)
 {
-	unsigned int i;
-	unsigned char default_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	unsigned char new_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	unsigned char result[16];
-	unsigned char test_id[32];
-
-	int ret;
-	/*Create a pointer struct and Init it. */
-	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
-	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	HSMReset();
-	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
-	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
-	if (ret)
-	{
-		printf("sync failed\n");
-		HSMHardwareDeinit();
-		return 1;
-	}
-	printf("sync success\n");
-
-	/*pin confirm*/
-	printf("pin is 8 byte password.!\n");
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinConfirm(default_pin, 8);
-	if (sign_verify_ret)
-	{
-		printf("pin confirm failed!\n");
-		sign_verify_error_count++;
-	}
-	else
-	{
-		printf("pin confirm success!\n");
-	}
-	/*Erase APP*/
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_APPErase();
-	if (sign_verify_ret)
-	{
-		printf("Erase app failed！\n");
-		HSMHardwareDeinit();
-		return 1;
-	}
-	else
-	{
-		printf("Erase app success!\n");
-	}
-	HSMHardwareDeinit();
-	return 0;
+	/*NOT USED*/
+	return fail;
 }
 
 
@@ -439,87 +352,15 @@ unsigned long  ISTECCEraseAPPTest(void)
 /*Upgated the erasing process, if the PIN code authentication failed. it will return directly.*/
 unsigned long  ISTECCEraseAPPTest2(void)
 {
-	unsigned int i;
-	unsigned char default_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	unsigned char new_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	unsigned char result[16];
-	unsigned char test_id[32];
-
-	int ret;
-	/*Create a pointer struct and Init it. */
-	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
-	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	HSMReset();
-	/*How to use sync ? if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
-	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
-	if (ret)
-	{
-		printf("sync failed\n");
-		HSMHardwareDeinit();
-		return 1;
-	}
-	printf("sync success\n");
-
-	/*pin confirm*/
-	printf("pin is 8 byte password.!\n");
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinConfirm(default_pin, 8);
-	if (sign_verify_ret)
-	{
-		printf("pin confirm failed!\n");
-		sign_verify_error_count++;
-		HSMHardwareDeinit();
-		return 1;
-	}
-	else
-	{
-		printf("pin confirm success!\n");
-	}
-	/*Erase APP*/
-	sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_APPErase();
-	if (sign_verify_ret)
-	{
-		printf("Erase app failed！\n");
-		HSMHardwareDeinit();
-		return 1;
-	}
-	else
-	{
-		printf("Erase app success!\n");
-	}
-	HSMHardwareDeinit();
-	return 0;
+	/*NOT USED*/
+	return fail;
 }
 
 /*update APP*/
 unsigned long ISTECCUpdateTest(void)
 {
-  	int ret;
-  	/*Create a pointer struct and Init it. */
-  	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
- 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_01M);
-	/*reset the 512A module*/
-	HSMReset();
-	HSMMsDelay(300);
- 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_APPUpdate();
-  	if (ret)
-  	{
-		printf("update failed\n");
-    	HSMHardwareDeinit();
-    	return 1;
-  	}
-  	else
-  	{
-    	printf("update success!\n");
-  	}
-  	HSMHardwareDeinit();
-  	return 0;
+	/*NOT USED*/
+	return fail;
 }
 
 
@@ -533,55 +374,7 @@ unsigned long ISTECCUpdateTest(void)
  */
 unsigned long  ISTECCSetIDTest(void)
 {
-	// unsigned int i;
-	// unsigned char default_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	// unsigned char new_pin[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-	// unsigned char result[16];
-
-	// int ret;
-	// /*Create a pointer struct and Init it. */
-	// ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
-	// FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	// /*Init the hardware . spi interface  and reset,busy io*/
-	// HSMHardwareInit(SPI_SPEED_10M);
-	// /*reset the 512A module*/
-	// HSMReset();
-	// /*How to use sync .if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
-	// ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
-	// if (ret)
-	// {
-	// 	printf("sync failed\n");
-	// 	HSMHardwareDeinit();
-	// 	return 1;
-	// }
-	// printf("sync success\n");
-
-	// /*pin confirm*/
-	// printf("pin is 8 byte password.!\n");
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinConfirm(default_pin, 8);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("pin confirm failed!\n");
-	// 	sign_verify_error_count++;
-	// }
-	// else
-	// {
-	// 	printf("pin confirm success!\n");
-	// }
-	// /*Erase APP*/
-	// sign_verify_ret = ISTECC512AFunctionPointerStructure.ISTECC512A_APPErase();
-	// if (sign_verify_ret)
-	// {
-	// 	printf("Erase app failed！\n");
-	// 	HSMHardwareDeinit();
-	// 	return 1;
-	// }
-	// else
-	// {
-	// 	printf("Erase app success!\n");
-	// }
-	// HSMHardwareDeinit();
+	/*NOT USED*/
 	return 0;
 }
 
@@ -676,13 +469,15 @@ unsigned long  ISTECCSPointerDecompressTest(void)
 	{
 		printf("pin confirm failed!\n");
 		sign_verify_error_count++;
+		HSMHardwareDeinit();
+		return 1;
 	}
 	else
 	{
 		printf("pin confirm success!\n");
 	}
 
-	while(1)
+	for(i=0;i<1000;i++)
 	{
 
 		/*Pointer Decompress mode 2 y0*/
@@ -757,11 +552,7 @@ static int test_complete_private_key_derivative(void)
 		0x8d,0x6a,0x98,0x5e,0x92,0xd1,0x55,0x66,
 		0x26,0x69,0x2a,0x07,0x7d,0x84,0xb5,0x1f
 	};
-	//334b266f348d935e72e8649d290db70d
-	// uint8_t ke[16] =
-	// {
-	// 	0x33,0x4b,0x26,0x6f,0x34,0x8d,0x93,0x5e,0x72,0xe8,0x64,0x9d,0x29,0x0d,0xb7,0x0d
-	// };
+
 	uint8_t ke[16] =
 	{
 		0x33,0x4b,0x26,0x6f, 
@@ -840,13 +631,6 @@ static int test_complete_private_key_derivative(void)
         printf("ISTECC512A_SM2CompleteKDF success\n");
     }
 
-    // ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
-    // if (ret)
-    // {
-    //     printf("ExportSM2Prikey error!\n");
-    // }
-    // printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
-    // hex_dump(pri_key, 32, 16, "PRI_KEY:");
     return ret;
 }
 
@@ -875,11 +659,7 @@ static int test_encrypt_and_sign_key_derivative(void)
 		0x8d,0x6a,0x98,0x5e,0x92,0xd1,0x55,0x66,
 		0x26,0x69,0x2a,0x07,0x7d,0x84,0xb5,0x1f
 	};
-	//334b266f348d935e72e8649d290db70d
-	// uint8_t ke[16] =
-	// {
-	// 	0x33,0x4b,0x26,0x6f,0x34,0x8d,0x93,0x5e,0x72,0xe8,0x64,0x9d,0x29,0x0d,0xb7,0x0d
-	// };
+
 	uint8_t ke[16] =
 	{
 		0x33,0x4b,0x26,0x6f, 
@@ -956,98 +736,20 @@ static int test_encrypt_and_sign_key_derivative(void)
 
         printf("ISTECC512A_SM2EncryptKeyKDF success\n");
     }
-
-    // ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(index, pri_key);
-    // if (ret)
-    // {
-    //     printf("ExportSM2Prikey error!\n");
-    // }
-    // printf("ExportSM2Prikey success ,INDEX IS %4d!\n",index);
-    // hex_dump(pri_key, 32, 16, "PRI_KEY:");
     return ret;
 }
 
 
-// int ISTECCKeyDeriveTest(void)
-// {
-
-//     int ret;
-	
-// #if 1
-// 		ret = test_encrypt_and_sign_key_derivative();
-// 		if (ret)
-// 		{
-// 			printf("encpryt key derive failed!\n");
-// 			return 1;
-// 		}
-	
-// #endif
-
-//     ret = test_complete_private_key_derivative();
-
-//     if (ret)
-//     {
-//         printf("sign key derive failed!\n");
-
-//     }
-//     return ret;
-
-// }
 
 
-/*
-*key derive flow's init. get kS kE, (a,A) (p,P)
-*1.a gen  sm4's kS 
-*1.b gen  sm4's kE
-*1.c gen  SM2 keypiar's pubkey A (a,A)
-*1.d gen  SM2 keypiar's pubkey P (p,P)*/
 
-/*
-	*8.V2X Device:
-	*For each ( i INT, j INT) , compute:
-	*a) Signature extended private key, b i , j = ( a+ f S ( k S , i INT, j INT)) mod l
-	*b) Encrypted extended private key, q i , j = ( p+ f E ( k E , i INT, j INT)) mod l
-	*9) For each ( i INT, j INT) , verify the PCA signature in SCT i , j :
-	*a) If the verification is successful,decrypt CT i , j using qi , j to get ( PCi , j , c ) , 
-	*and calculate the complete private key s i , j = ( b i ) corresponding to the public key in the PC i , j , j + c ) mod l
-	*b) if validation fails, exit
-	*/	
-
-// int  V2XDeviceGetKeyDeriveSignPrivateKey(int i,int j,char *kS, char *kE,unsigned char * CTij,int index)
-// {
-
-// 	return 0;
-// }
-/*
-this demo show the full flow of the key derive.
-*/
 unsigned long ISTECCKeyDeriveTest(void)
 {
-	int ret;
-	int i = 71;
-	int j = 10;
-
-	char kS[16];
-	char kE[16];
-	char sign_keypair_prikey_factor[32];
-	char sign_keypair_pubkey_factor[64];
-	char encrpyt_keypair_prikey_factor[32];
-	char encrpyt_keypair_pubkey_factor[64];
-
-	/*Create a pointer struct and Init it. */
-	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
-	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	/*Init the hardware . spi interface  and reset,busy io*/
-	HSMHardwareInit(SPI_SPEED_10M);
-	/*reset the 512A module*/
-	HSMReset();
 
 
-	/*TEST RANDOM*/
-	ISTECC512AFunctionPointerStructure.ISTECC512A_GetRandom(encrpyt_keypair_pubkey_factor,64);
-	/*1. Get 2 sets of sm4 key and 2 sets of sm2 pubkey */
-	ISTECC512AFunctionPointerStructure.ISTECC512A_DeviceKeyDeriveFlowInit(kS,kE,sign_keypair_pubkey_factor,encrpyt_keypair_pubkey_factor);
+
+	/*1. Get 2 sets of sm4 key and 2 sets of sm2 pubkey 
+	*/
 	/*
 	*2.Now you get the (kS,kE,A,P) 
 	*V2X device send (kS,kE,A,P) with EcRaCertRequest to PRA.
@@ -1095,8 +797,8 @@ unsigned long ISTECCKeyDeriveTest(void)
 	*and calculate the complete private key s i , j = ( b i ) corresponding to the public key in the PC i , j , j + c ) mod l
 	*b) if validation fails, exit
 	*/	
-	// ret = V2XDeviceGetKeyDeriveSignPrivateKey(i,j,kS,kE,0);
-	return ret;
+	/*NOT USED*/
+	return fail;
 }
 
 
@@ -1110,7 +812,6 @@ unsigned long ISTECCKeyDeriveTest(void)
                            const unsigned char *add, unsigned int add_len,
                            const unsigned char *input, unsigned char *output,
                            unsigned char *tag, unsigned int tag_len )
-
 
 	加密模式:
 	参数1:&ctx 在函数开始声明
@@ -1148,6 +849,7 @@ unsigned long ISTECCKeyDeriveTest(void)
 */
 unsigned long ISTECCSm4CcmTest(void)
 {
+	/*NOT USED*/
 	return 0;
 }
 
@@ -1219,8 +921,6 @@ unsigned long  IS32U512ASM2EncyprtDecryptTest(void)
 		printf("pin confirm success!\n");
 	}
 
-	
-	
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(0);
 	if (ret)
 	{
@@ -1241,16 +941,6 @@ unsigned long  IS32U512ASM2EncyprtDecryptTest(void)
 	{
 		printf("ISTECC512A_SM2ExportPubkey success!\n");
 	}
-	
-	// ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(0, sign_verify_temp_prikey);
-	// if (sign_verify_ret)
-	// {
-	// 	printf("ISTECC512A_SM2ExportPrikey failed!\n");
-	// }
-	// else
-	// {
-	// 	printf("ISTECC512A_SM2ExportPrikey success!\n");
-	// }
 
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ImportPubkey(0, sign_verify_temp_pubkey,
 																					sign_verify_temp_pubkey + 32);
@@ -1576,7 +1266,6 @@ unsigned long  IS32U512ASm2SignEvalueAndVerifyEvalueWithPubKeyIndex(void)
 		
 	}
 
-
 	/*deinit the hardware. spi interface and reset,busy io.release the source*/
 	HSMHardwareDeinit();
 }
@@ -1599,7 +1288,6 @@ unsigned long ISTECCMODADDTest(void)
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 	/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(SPI_SPEED_10M);
-
 
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)

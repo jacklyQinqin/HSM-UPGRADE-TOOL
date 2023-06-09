@@ -110,8 +110,6 @@ static void hex_to_str(unsigned char *cHex,int len,char *chArray)
 	while(len--)
 	{
 		temp = *cHex++;
-//		*chArray++ = '0';
-//		*chArray++ = 'x';
 		temp_h = (temp>>4)&0x0F;
 		if((temp_h>=0x0)&&(temp_h<=0x09))
 			*chArray++ = '0'+temp_h;
@@ -312,8 +310,6 @@ int analysis_one_line_script(char * script_line,char *send,int * send_len, char 
     /*将其转换为HEX格式*/
     str_to_hex(str_cmd,strlen(str_cmd),hex_cmd);
 	* send_len = (ptr - &buff[5]) >> 1;
-    //printf("SNED LEN : %d\n",* send_len);
-	//hex_dump(hex_cmd,send_len, 16,"hex_cmd buff:");
 	
 	str_to_hex(str_compare,strlen(str_compare),hex_compare);
 	* compare_len = strlen(str_compare) >> 1;
@@ -340,7 +336,6 @@ int compare_respond_value(char * respond, char *comapare)
 	const char cmd_xor_error[]  = {0x63 ,0x62 ,0x63 ,0x65 ,0x09 ,0x00 ,0x00 ,0x00 ,0x0e};
 	len = respond[4] + respond[5] * 0X100;
 
-	//printf("compare_respond_value,the len is %4d\n",len);
 	/*
 	计算XOR
 	*/
@@ -348,7 +343,6 @@ int compare_respond_value(char * respond, char *comapare)
 		xor ^= respond[i];
 	if (xor == respond[len-1])
 	{
-		//printf("xor is 0x%04x\n",xor);
 		;
 	}  
 	else
@@ -383,8 +377,6 @@ int compare_respond_value(char * respond, char *comapare)
 			return RESPOND_COMPARE_ERROR;
 		}
 		else{
-			// printf("RESPOND_COMPARE_SUCCESS!\n");
-			// hex_dump(comapare,2,2,"comapare");
 			return RESPOND_COMPARE_SUCCESS;
 		}
 	}
@@ -429,9 +421,6 @@ long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
         {
             ;
             printf("rec right .,break\n");
-            //gettimeofday(&tv2,NULL);
-            //delta = (tv2.tv_sec*1000000 + tv2.tv_usec) - (tv.tv_sec*1000000 + tv.tv_usec);
-           // printf("microsecond interval:%8ld MS\n",delta/1000);  //微秒
             break;
         }
         else if(0 == memcmp(receive,rec_error,4))
@@ -466,7 +455,6 @@ long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
     }
     else if(time == 1)
     {
-        //printf("读取完成所有返回值.程序将返回!\n");
         ret = 0;
     }
     else if( time > 1)
@@ -561,7 +549,7 @@ int script_analysis(char * file_name,char comapre_en)
 	int i = 0;
     int ret; 
     char string[]  = "script_analysis_test\n";
-    //char line[4300][1024];
+    
     /*Modify to a smaller memory.*/
     char line[1024];
     char send[1024];
@@ -578,7 +566,7 @@ int script_analysis(char * file_name,char comapre_en)
  	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
     
     printf("the file is %s\n",file_name);
-    const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
+    unsigned char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
     fp = fopen(file_name,"r");
     if(fp ==NULL)
     {
@@ -596,11 +584,9 @@ int script_analysis(char * file_name,char comapre_en)
 		/*发送指令*/
 		send_script_cmd(send,send_len,&ISTECC512AFunctionPointerStructure);
 		HSMUsDelay(5);
-		//HSMMsDelay(1);
 		/*接收响应值*/
 		receive_script_respond(receive,&ISTECC512AFunctionPointerStructure);
-		// hex_dump(send_buff,send_len,16,"SPI_FORAMT_CMD:");
-		// printf("the send_len is %4d\n\n",send_len);
+
 		/*compare the respond*/
 		if(comapre_en)
 		{

@@ -12,7 +12,7 @@
 #include "hsm_hardware_level.h"
 #include "hsm_test_task.h"
 #include "script_deal.h"
-
+#include "hsm_logic_level.h"
 #define STEP1_CHECK_VERISON  		0X01
 #define STEP2_ERASE_HSM_APP  		0X02
 #define STEP3_DOWNLOAD_NEW_HSM_APP  0X03

@@ -197,3 +197,21 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
 ### HSM UPGRADE INSTRUCTIONS:
 	1.Modify the ModAdd function. You need pass bij_index to hsm not bij .
 	2.Modify the setId  funciton. Not stored to flash.(This's not needed.)
+## verison 1.8.9.9(02)
+	1.Base 1.8.9.9 (01) Pushed some missing files.
+## verison 1.8.9.9(03)
+
+    1.
+    Because the new HSM FW upgrade method is mainly in the script_deal.c file and upgrade test is hsm_upgrade_test.c.
+    so these test were removed(in hsm_test_task.c):
+    ISTECCEraseAPPTest() 
+    ISTECCEraseAPPTest2()
+    ISTECCUpdateTest() 
+    and The API p->ISTECC512A_APPUpdate  were removed.(We don't need it)
+    #include "Downloadfile.h" in hsm_logic_level.c were remoded.
+    and DownloadFile.h  DownloadFile.c  were removed. we use separate upgrade file  (for example DownloadFile18909.ini).
+    2.  
+    We delete some commentted code. we don't need then now. 
+    Some funciton declarations and external referenees were added. complier warings are eliminated. 
+
+

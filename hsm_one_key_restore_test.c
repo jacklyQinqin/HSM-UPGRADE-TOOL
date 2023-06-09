@@ -53,10 +53,7 @@ unsigned long HSMOneKeyRestore(void)
 
 	/*Init the hardware . spi interface  and reset,busy io*/
 	HSMHardwareInit(10000000);
-	HSMThreadMutexInit();
-	/*初始化信号量*/
-	HSMSempohreInit();
-	HSMSetSemphre();
+
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
@@ -81,7 +78,8 @@ unsigned long HSMOneKeyRestore(void)
 	{
 		printf("pin confirm failed!\n");
 		error_count++;
-		return (1);
+		HSMHardwareDeinit();
+		return 1;
 	}
 	else
 	{
@@ -94,11 +92,10 @@ unsigned long HSMOneKeyRestore(void)
 		if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(i))
 		{
 			printf("ISTECC512A_SM2GenKeyPair failed!\n");
-			//HSMHardwareDeinit();
-			return (1);
+			HSMHardwareDeinit();
+			return 1;
 		}
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -106,8 +103,6 @@ unsigned long HSMOneKeyRestore(void)
     for(i=0;i<15;i++)
 	{	
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
-        // hex_dump(sm2_private_key,32,32,"PRIKEY:");
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
         hex_dump(sm2_public_key,32,64,"PUBKEY:");
 	}
@@ -116,14 +111,15 @@ unsigned long HSMOneKeyRestore(void)
     if(ISTECC512AFunctionPointerStructure.ISTECC512A_Restore())
     {
         printf("ISTECC512A_Restore failed!\n");
-        return 1;
+        HSMHardwareDeinit();
+		return 1;
     }
+
+	printf("RESET ALL KEY PAIR.!\n");
     /*export the 16 group key pairs.*/
     for(i=0;i<15;i++)
 	{	
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
-        // hex_dump(sm2_private_key,32,32,"PRIKEY:");
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
         hex_dump(sm2_public_key,32,64,"PUBKEY:");
 	}

@@ -9,4 +9,6 @@
 #define __HSM_SELF_TEST_H__
 
 unsigned long HSMSelfTest(unsigned long test_loop);
+unsigned long HSMSelfTestWithMultithreading(void);
+unsigned long HSMSelfTestWithMulProcess(void);
 #endif
