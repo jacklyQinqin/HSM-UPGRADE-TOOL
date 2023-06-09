@@ -34,20 +34,12 @@
 
 // hardware of the spi - reset control and busy
 #include "hsm_hardware_level.h"
-// update file. you don't need it now.
-//#include "DownLoadFile.h"
-
-// self header file
 #include "hsm_logic_level.h"
-
-// sm3 algorithm
-//#include "sm3.h"
 
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "DownLoadFile.h"
 
 #define DELAY_OF_IMPORT_PUB_KEY             (1)
 #define DELAY_OF_IMPORT_PRI_KEY             (20)
@@ -76,7 +68,6 @@
 #define DELAY_OF_GET_Bij                    (5) 
 #define DELAY_OF_GET_Qij                    (5) 
 #define DELAY_OF_GET_RANDOM                 (1)
-
 
 
 /*创建一个全局的锁*/
@@ -204,7 +195,7 @@ int HSMGetSem(void)
 
 
 /*print log yes or no*/
-#define HSM_LOGIC_LINIX_DEBUG_ON 0
+#define HSM_LOGIC_LINIX_DEBUG_ON 1
 /*send and receive buff*/
 static unsigned char tx_buff[2064] = {0};
 static unsigned char rx_buff[2064] = {0};
@@ -324,9 +315,7 @@ unsigned long GenKeyPair(unsigned long index)
 
     while (HSMGetBusystatus())
         ;
-    // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    // hex_dump(tx_buff, tx_buff_len, 16, "GenKeyPair tx:");
-    // #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -481,8 +470,8 @@ unsigned long ImportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
     unsigned long tx_buff_len = IS32U512A_SM2_MODULE_CMD_LEN + IS32U512A_SM2_PUBKEY_LEN;
     unsigned long rx_buff_len = 4;
     const uint8_t import_sm2pubkey_cmd[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0x01, 0x46, 0x00, 0x00, 0x00};
-     pthread_mutex_lock(&hsm_mutex_pthread);
-     HSMPSemphre();
+    pthread_mutex_lock(&hsm_mutex_pthread);
+    HSMPSemphre();
     memcpy(tx_buff, import_sm2pubkey_cmd, IS32U512A_SM2_MODULE_CMD_LEN);
     memcpy(&tx_buff[IS32U512A_SM2_MODULE_CMD_LEN], pubkey_x, 32);
     memcpy(&tx_buff[IS32U512A_SM2_MODULE_CMD_LEN + 32], pubkey_y, 32);
@@ -492,9 +481,7 @@ unsigned long ImportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "ImportSM2Pubkey tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -563,9 +550,7 @@ unsigned long ImportSM2Prikey(unsigned long index, unsigned char *prikey_d)
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "ImportSM2Prikey tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -636,9 +621,7 @@ unsigned long ExportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "export_sm2pubkey_cmd tx:");
-// #endif
+
     if (0 != ret)
     {
         HSMVSemphre();
@@ -696,48 +679,7 @@ unsigned long ExportSM2Pubkey(unsigned long index, unsigned char *pubkey_x, unsi
 \****************************************************************/
 unsigned long ExportSM2Prikey(unsigned long index, unsigned char *prikey_d)
 {
-
-    // unsigned long ret = 0;
-    // unsigned long tx_buff_len = IS32U512A_SM2_MODULE_CMD_LEN;
-    // unsigned long rx_buff_len = 2 + IS32U512A_SM2_PRIKEY_LEN;
-
-    // const uint8_t export_sm2prikey_cmd[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0x07, 0x00, 0x00, 0x00, 0x00};
-    // pthread_mutex_lock(&hsm_mutex_pthread);
-    // HSMPSemphre();
-    // memcpy(tx_buff, export_sm2prikey_cmd, IS32U512A_SM2_MODULE_CMD_LEN);
-    // tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
-    // tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
-    // tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
-
-    // while (HSMGetBusystatus())
-    //     ;
-    // ret = HSMWrite(tx_buff, tx_buff_len);   
-    // // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    // // hex_dump(tx_buff, tx_buff_len, 16, "ExportSM2Prikey tx:");
-    // // #endif
-    // if (0 != ret)
-    // {
-    //      HSMVSemphre();
-    //      pthread_mutex_unlock(&hsm_mutex_pthread);
-    //     return fail;
-    // }
-    // HSMMsDelay(DELAY_OF_EXPORT_PRI_KEY);
-    // while (HSMGetBusystatus())
-    //     ;
-    // ret = HSMRead(rx_buff, rx_buff_len);
-    // if (ret == 0 && rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
-    // {
-    //     memcpy(prikey_d, &rx_buff[2], 32);
-    //     HSMVSemphre();
-    //     pthread_mutex_unlock(&hsm_mutex_pthread);
-    //     return sucess;
-    // }
-
-    // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    // hex_dump(rx_buff, rx_buff_len, 16, "ExportSM2Prikey rx:");
-    // #endif
-    // HSMVSemphre();
-    // pthread_mutex_unlock(&hsm_mutex_pthread);
+    /*NOT USED*/
      return fail;
 }
 
@@ -792,9 +734,7 @@ unsigned long SM2SingleVerify(unsigned long pubkey_index, unsigned char *p_org_d
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2SingleVerify Tx:");
-// #endif
+
     if (0 != ret)
     {
         HSMVSemphre();
@@ -868,9 +808,7 @@ unsigned long SM2Sign(unsigned long prikey_index, unsigned char *p_org_data, uns
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2Sign tx:");
-// #endif
+
     if (0 != ret)
     {
         HSMVSemphre();
@@ -944,9 +882,7 @@ unsigned long SM2SignEValue(unsigned long prikey_index, unsigned char *e,unsigne
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2SignEValue tx:");
-// #endif
+
     if (0 != ret)
     {
 
@@ -1017,9 +953,7 @@ unsigned long PinConfirm(unsigned char *pin_value, unsigned long len_of_pin)
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "PinConfirm tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1088,9 +1022,7 @@ unsigned long PinConfirmCancel(unsigned char *pin_value, unsigned long len_of_pi
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "PinConfirmCancel tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1160,9 +1092,7 @@ unsigned long PinChange(unsigned char *old_pin_value, unsigned char *new_pin_val
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "PinChange tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1231,9 +1161,7 @@ unsigned long SyncStatus(void)
     /*try to switch the state of the module to receiving state once */
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SyncStatus tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1245,9 +1173,7 @@ unsigned long SyncStatus(void)
     HSMMsDelay(DELAY_OF_SYNC);
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SyncStatus tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1271,9 +1197,7 @@ unsigned long SyncStatus(void)
     HSMMsDelay(1);
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SyncStatus tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1284,9 +1208,7 @@ unsigned long SyncStatus(void)
     HSMMsDelay(1);
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SyncStatus tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1366,9 +1288,7 @@ unsigned long SM2Encrypt(unsigned long index, unsigned char *message, unsigned l
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2Encrypt tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1405,9 +1325,7 @@ unsigned long SM2Encrypt(unsigned long index, unsigned char *message, unsigned l
 
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2Encrypt tx:");
-// #endif
+
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1493,9 +1411,7 @@ unsigned long SM2Decrypt(unsigned long index, unsigned char *message, unsigned l
     /*Watting for HSM free.*/
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2Decrypt tx:");
-// #endif
+
     /*send instruction and data*/
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
@@ -1533,10 +1449,6 @@ unsigned long SM2Decrypt(unsigned long index, unsigned char *message, unsigned l
     tx_buff[IS32U512A_SM2_MODULE_CMD_INDEX_OFFSET] = index;
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
     tx_buff[IS32U512A_SM2_DATA_LEN_L_OFFSET] = tx_buff_len % 256;
-
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2Decrypt tx:");
-// #endif
 
     while (HSMGetBusystatus())
         ;
@@ -1679,9 +1591,6 @@ unsigned long SM4ImportKey(unsigned long index, unsigned char *key)
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM4ImportKey tx:");
-// #endif
     if (0 != ret)
     {
         HSMVSemphre();
@@ -1757,9 +1666,6 @@ unsigned long SM4Encrpyt(unsigned long index, unsigned char *in, unsigned long l
     }
     while (HSMGetBusystatus())
         ;
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM4Encrpyt tx:");
-// #endif
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
@@ -1843,9 +1749,6 @@ unsigned long SM4Decrpyt(unsigned long index, unsigned char *in, unsigned long l
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM4Encrpyt tx:");
-// #endif
     if (0 != ret)
     {
         HSMVSemphre();
@@ -1925,9 +1828,7 @@ unsigned long SM2PointerDecompress(unsigned char * gx, ISTECCPointDecompressMode
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-    // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    //     hex_dump(tx_buff, tx_buff_len, 16, "SM2PointerDecompress tx:");
-    // #endif
+ 
         if (0 != ret)
         {
             HSMVSemphre();
@@ -1955,114 +1856,6 @@ unsigned long SM2PointerDecompress(unsigned char * gx, ISTECCPointDecompressMode
     return fail;
 
 }
-
-
-
-/****************************************************************\
-* Function:	   SM2SignKeyKDF
-*
-* Description: sign key derivative
-*
-* Calls:
-*				None
-*
-* Called By:
-*
-* Input:        in_index  private key index. if you import a private key to index 1. write 1 here.
-*				out_index the result of key derivative.
-*				i     parameters i .
-*              	j     parameters j
-*				ks    sm4 key 
-*				c     parameters c .get it from CA.
-* Output:	  	
-*
-*
-* Return:
-*				  SUCCESS：       0X00
-*				  FAIL   ：       0X01
-*
-* Others:
-*					None
-*
-* Remark:     for example: 
-*             You has got  the parameters : i , j  ks. and c. 
-*             You import a private key to index 1. and you want to get the result of key derivative  to index 2.
-*             SM2SignKeyKDF(1,2,i,j,ks,c);         
-*             Execute success, you can export the index 2 of private key to Confirm the results. 
-*             For a detailed process, check out the demo .
-\****************************************************************/
-
-// unsigned long SM2SCompleteKeyKDF()
-// {
-//     unsigned long ret = 0;
-//     unsigned long tx_buff_len = 0X44; // 1byte is length of mode.
-//     unsigned long rx_buff_len = 6;
-//     //点解压命令 CMD(5) +MODE(1)+GX(32)共38字节，返回值为9000 + PUBKEY 66字节
-//     const unsigned char encrypt_key_kdf[IS32U512A_SM2_MODULE_CMD_LEN] = {0XBF,0X3C,0X00,0X00,0X00,0X00};
-		
-//     memset(tx_buff,0x00,100);
-//     memcpy(tx_buff, encrypt_key_kdf, sizeof(encrypt_key_kdf));
-
-//     tx_buff[6] = 0x00;
-//     tx_buff[7] = tx_buff_len;
-
-//     tx_buff[8] = (in_index>>8 ) & 0xff;
-//     tx_buff[9] = in_index & 0xff;
-//     tx_buff[10] = (out_index>>8 ) & 0xff;
-//     tx_buff[11] = out_index & 0xff;
-
-
-//     tx_buff[12] = (i>>24) & 0xff;
-//     tx_buff[13] = (i>>16) & 0xff;
-//     tx_buff[14] = (i>>8 ) & 0xff;
-//     tx_buff[15] = i & 0xff;
-
-
-//     tx_buff[16] = (j>>24) & 0xff;
-//     tx_buff[17] = (j>>16) & 0xff;
-//     tx_buff[18] = (j>>8 ) & 0xff;
-//     tx_buff[19] = j & 0xff;
-		
-		
-//     memcpy(&tx_buff[20],ks,16);
-//     memcpy(&tx_buff[20+16],c,32);
-
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
-// #endif
-//     HSMMsDelay(1);
-//    while (HSMGetBusystatus())
-//         ;
-//     ret = HSMWrite(tx_buff, tx_buff_len);
-//     #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//         hex_dump(tx_buff, tx_buff_len, 16, "SM2SCompleteKeyKDF tx:");
-//     #endif
-//         if (0 != ret)
-//         {
-//             return fail;
-//         }
-//         HSMMsDelay(1);
-//         while (HSMGetBusystatus())
-//             ;
-
-//     ret = HSMRead(rx_buff, rx_buff_len);
-//     if (ret != 0)
-//     {
-//         return fail;
-//     }
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(rx_buff, rx_buff_len, 16, "SM2SCompleteKeyKDF rx:");
-// #endif
-//     if (rx_buff[0] == 0x90 && rx_buff[1] == 0x00)
-//     {
-//         return sucess;
-//     }
-
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     printf("SM2SignKeyKDF fail!\n");
-// #endif
-//     return fail;
-// }
 
 
 /****************************************************************\
@@ -2129,14 +1922,11 @@ unsigned long SM2Getbij(unsigned char *kS,unsigned long i , unsigned long j)
 		
     memcpy(&tx_buff[20],kS,16);
     
-    // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
 
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-    // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    //     hex_dump(tx_buff, tx_buff_len, 16, "SM2Getbij tx:");
-    // #endif
+  
     if (0 != ret)
     {
         HSMVSemphre();
@@ -2228,14 +2018,10 @@ unsigned long SM2Getqij(unsigned char *kE,unsigned long i , unsigned long j)
 		
     memcpy(&tx_buff[20],kE,16);
     
-    // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
 
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-    // #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-    //     hex_dump(tx_buff, tx_buff_len, 16, "SM2Getqij tx:");
-    // #endif
     if (0 != ret)
     {
         HSMVSemphre();
@@ -2291,7 +2077,6 @@ unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_
     tx_buff[7] = (tx_buff_len)%256;
  
     memcpy(&tx_buff[12],c,32);
-    // printf("the send message len is %d the rec message len is %d\n",tx_buff_len,rx_buff_len);
     while(HSMGetBusystatus());
     ret =  HSMWrite(tx_buff,tx_buff_len);
     if(0!=ret)
@@ -2300,9 +2085,7 @@ unsigned long ModAdd(unsigned int bij_index,unsigned char *c,unsigned char *out_
         pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-// 	hex_dump(tx_buff,tx_buff_len, 16,"KDF_ModAdd tx:");
-// #endif	
+
     HSMMsDelay(DELAY_OF_MOD_ADD);
     while(HSMGetBusystatus());
     ret = HSMRead(rx_buff,rx_buff_len);
@@ -2335,8 +2118,6 @@ unsigned char *CTij, unsigned long CTij_len,
 unsigned char *nonce,unsigned long nonce_len,
 unsigned char * tag, unsigned long tag_len,
 unsigned char * palin_text
-what of this funciton do ?>
-
 
 */
   unsigned long SM2Getsij(unsigned char * seed_a,
@@ -2344,31 +2125,8 @@ what of this funciton do ?>
       unsigned int jINT,char * c,
       unsigned char * sij)
 {
-
-    // unsigned char bij[32];
-     unsigned long ret = 1;
-    // unsigned long tx_buff_len = 0; // 1byte is length of mode.
-    // unsigned long rx_buff_len = 0;
-
-    // ret = ImportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX,seed_a);
-    // ret = SM2Getbij(kS,iINT,jINT);
-    // if(ret)
-    // {
-    //     printf("SM2Getbij failed!\n");
-    // }
-    // ret = ExportSM2Prikey(IS32U512A_CONST_SIGN_FACTOR_INDEX-2,bij);
-    // if(ret)
-    // {
-    //     printf("ExportSM2Prikey failed!\n");
-    // }
-
-
-    // ret = ModAdd(IS32U512A_CONST_SIGN_FACTOR_INDEX-2,c,sij);
-    // if(ret)
-    // {
-    //     printf("ret failed!\n");
-    // }
-    return ret;
+    /*NOT USED*/
+    return fail;
 }
 
 /****************************************************************\
@@ -2484,91 +2242,6 @@ unsigned long IS32U512AReceiveOneMessage(unsigned char *rec, unsigned long len)
     return sucess;
 }
 
-/**
- * @brief
- * 
- * @return unsigned long
- */
-unsigned long APPUpdate(void)
-{
-    unsigned long time = 0;
-    unsigned char xor = 0;
-    unsigned long ret =  0;
-    unsigned long i = 0;
-    pthread_mutex_lock(&hsm_mutex_pthread);
-    HSMPSemphre();
-    const char cod_guide[]={0x40,0x42,0x53,0x55,0x0e,0x00,0x00,0x00,0xbf,0x49,0x00,0x00,0x00,0xfc};
-    // ret  = BootloaderSync();
-    // if(ret)
-    // {
-    //     return fail;
-    // }
-    
-    for(time=0;time<MAX_LINE;time++)
-    {
-        printf("the line is %d\n",time);
-        /*send update message*/
-        IS32U512ASendOneMessage((unsigned char *)arrayPointer[time],((unsigned char *)arrayPointer[time])[4] +((unsigned char *)arrayPointer[time])[5]*256 );
-        
-        if(time == 0)
-        {
-            /*DUMMY*/
-            for(i=0;i <10;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }   
-            }
-              
-        }
-        else if((time == 1) || (time == 3))
-        {
-            HSMMsDelay(50);
-             /*DUMMY*/
-            for(i=0;i <5;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }
-            }
-        } else{
-             /*DUMMY*/
-            for(i=0;i <5;i++)
-            {
-                HSMMsDelay(10);
-                IS32U512AReceiveOneMessage(rx_buff,16);
-                if((rx_buff[0] == 0x50) || (rx_buff[0] == 0x63))
-                {
-                    break;
-                }
-            }
-        }
-
-        if(rx_buff[8] == 0x90)
-        {
-            ;
-        } else{
-            HSMVSemphre();
-             pthread_mutex_unlock(&hsm_mutex_pthread);
-            printf("APPUpdate result error!\n");
-            return  fail;
-        }
-    }
-
-    IS32U512ASendOneMessage(cod_guide,sizeof(cod_guide));
-    
-    HSMMsDelay(30);
-    HSMVSemphre();
-    pthread_mutex_unlock(&hsm_mutex_pthread);
-    return sucess;
-}
-
 
 unsigned long  V2XDeviceGetRandom(unsigned char * buff,unsigned long len)
 {
@@ -2590,9 +2263,6 @@ unsigned long  V2XDeviceGetRandom(unsigned char * buff,unsigned long len)
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "V2XDeviceGetRandom tx:");
-// #endif
     if (0 != ret)
     {
         HSMVSemphre();
@@ -2728,9 +2398,6 @@ unsigned long SM2EValueVerify(unsigned long pubkey_index, unsigned char *e,unsig
     while (HSMGetBusystatus())
         ;
     ret = HSMWrite(tx_buff, tx_buff_len);
-// #if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
-//     hex_dump(tx_buff, tx_buff_len, 16, "SM2EValueVerify Tx:");
-// #endif
     if (0 != ret)
     {
         HSMVSemphre();
@@ -2833,8 +2500,6 @@ unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p)
     p->ISTECC512A_SM4Decrypt = SM4Decrpyt;
     /*Erase  app,reset the chip ,will return to bootloader*/
     p->ISTECC512A_APPErase = APPErase;
-    /*Update the app.*/
-    p->ISTECC512A_APPUpdate = APPUpdate;
 
     /*add 2022-9-25*/
     p->ISTECC512A_SM2PointerDecompress = SM2PointerDecompress;

@@ -68,36 +68,8 @@ PART2   S	32Byte*/
 /*cal result*/
 #define sucess 0
 #define fail 1
-
 /*Unit: us*/
 #define VERIFY_DELAY 400
-
-/**
- * @brief
- *  Don't care about it .
- */
-// typedef enum{
-// 	ISTECC_VERIFY_E_RS = 0,   //
-// 	ISTECC_VERIFY_M_RS = 1,
-// 	ISTECC_VERIFY_E_RS_PUBKEY = 2,
-// 	ISTECC_VERIFY_M_RS_PUBKEY = 3,
-// 	ISTECC_VERIFY_M_RS_PUBKEY_ID = 4, //有可能是最多的用法。传入M + RS + PUBKEY + ID
-// }ISTECVerifyMode_t;
-/**
- * @brief
- * Don't care about it .
- */
-// typedef struct
-// {
-// 	unsigned char * message; 	//消息或者预处理值的指针
-// 	unsigned int    message_len;//消息的长度
-// 	unsigned char * id;			//ID指针
-// 	unsigned int    id_len; 	//ID的长度
-// 	unsigned char * rs; 		//签名结果
-// 	unsigned char * pubkey; 	//公钥
-// 	ISTECVerifyMode_t    	verify_mode;//验签模式
-// 	unsigned int    		result; 	//验签结果.暂时不用
-// }ISTECCVerifyMessageInfo_t, * ISTECCVerifyMessageInfoPointer_t;
 
 typedef enum
 {
@@ -108,7 +80,7 @@ typedef enum
 /*Define all function pointer of sm2-module */
 typedef struct
 {
-  /*The index of SM2 KEY is (0-5)*/
+  /*The index of SM2 KEY is (0-15)*/
   /*import the public key of SM2 . G(x,y).. total 64 byte.*/
   unsigned long (*ISTECC512A_SM2ImportPubkey)(unsigned long index, unsigned char *pubkey_x, unsigned char *pubkey_y);
   /*import the private key of SM2  32byte*/
@@ -171,22 +143,20 @@ typedef struct
   unsigned long (*ISTECC512A_APPUpdate)(void);
   /*pointer decompress.*/
   unsigned long (*ISTECC512A_SM2PointerDecompress)(unsigned char *gx, ISTECCPointDecompressMode_t mode,unsigned char *pubkey);
-    /*complete privite key derivative. the c value get from PCA.*/
-   unsigned long (*ISTECC512A_SM2CompleteKDF)( unsigned long in_index, unsigned long out_index, unsigned long i, unsigned long j,unsigned char * ks,unsigned char *c);
+  /*complete privite key derivative. the c value get from PCA.*/
+  unsigned long (*ISTECC512A_SM2CompleteKDF)( unsigned long in_index, unsigned long out_index, unsigned long i, unsigned long j,unsigned char * ks,unsigned char *c);
   /*encrypt key derivative and  sign key derivative.*/
-   unsigned long (*ISTECC512A_SM2EncryptSignKeyKDF)( unsigned long in_index, unsigned long out_index, unsigned long i, unsigned long j,unsigned char * ke);
-
-  /*the new add funciton.1.8.8.5*/
+  unsigned long (*ISTECC512A_SM2EncryptSignKeyKDF)( unsigned long in_index, unsigned long out_index, unsigned long i, unsigned long j,unsigned char * ke);
 
   unsigned long (*ISTECC512A_DeviceKeyDeriveFlowInit)(unsigned char *kS,unsigned char *kE,unsigned char *A, unsigned char *P);
   unsigned long (*ISTECC512A_GetRandom)(unsigned char *buff,unsigned long len);
   unsigned long  (*ISTECC512A_KDFGetbij)(unsigned char *kS,unsigned long i , unsigned long j);
   unsigned long  (*ISTECC512A_KDFGetqij)(unsigned char *kE,unsigned long i , unsigned long j);
-   unsigned long (*ISTECC512A_KDFGetsij)(unsigned char * seed_a,
+  unsigned long (*ISTECC512A_KDFGetsij)(unsigned char * seed_a,
       unsigned char *kS,unsigned int iINT,
       unsigned int jINT,char * c,
       unsigned char * sij);
-  //unsigned long  (*ISTECC512A_KDFGetsij)(char *sm4,char * in,char *out);
+
   unsigned long (*ISTECC512A_ModAdd)(unsigned int bij_index,unsigned char *c,unsigned char *out_sij);
   /*********resever************/
   /*Data store  reserved*/
@@ -196,10 +166,10 @@ typedef struct
   /*2022-11-8 15:51 add   provide E+RS verify mode*/
   unsigned long (*ISTECC512A_SM2VerifyEValueWithPubkeyIndex)(unsigned long pubkey_index,unsigned char *e,unsigned char *rs);
 
-    /*2022-11-23 add  e value sign*/
+  /*2022-11-23 add  e value sign*/
   unsigned long (*ISTECC512A_SM2SignEValue)(unsigned long prikey_index, unsigned char *e, unsigned char *p_sign_data);
 
-   /*2023-5-9 add one key restore.*/
+  /*2023-5-9 add one key restore.*/
   unsigned long (*ISTECC512A_Restore)(void);
 
  /*2023-5-10 add SendOneMessage and RecOneMessage for Upgrade tools*/
@@ -211,9 +181,10 @@ typedef struct
 /*Don't care about it. The funciton has init the pointer .*/
 unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p);
 
-
-
 int HSMSempohreInit(void);
 int HSMThreadMutexInit(void);
 int HSMSempohreDeInit(void);
+int HSMSetSemphre(void);
+int HSMPSemphre(void);
+int HSMVSemphre(void);
 #endif

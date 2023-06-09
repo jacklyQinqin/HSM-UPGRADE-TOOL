@@ -76,7 +76,8 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 	{
 		printf("pin confirm failed!\n");
 		error_count++;
-		return (1);
+		HSMHardwareDeinit();
+		return 1;
 	}
 	else
 	{
@@ -90,10 +91,9 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 		{
 			printf("ISTECC512A_SM2GenKeyPair failed!\n");
 			HSMHardwareDeinit();
-			return (1);
+			return 1;
 		}
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -106,7 +106,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 			{
 				printf("ISTECC512A_SM2Encrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				return 1;
 			}
 			
 			memset(temp,0x00,sizeof(temp));
@@ -114,7 +114,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 			{
 				printf("ISTECC512A_SM2Decrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				return 1;
 			}
 			else
 			{
@@ -124,7 +124,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 				{
 					printf("result of decrypt comapre failed!\n");
 					HSMHardwareDeinit();
-					return (1);
+					return 1;
 				}
 			}
 
@@ -133,7 +133,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 			{
 				printf("ISTECC512A_SM2SignEValue failed\n");
 				HSMHardwareDeinit();
-				return (1);
+				return 1;
 
 			}
 			hex_dump(rs,64,32,"RS:");
@@ -141,7 +141,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 			{
 				printf("ISTECC512A_SM2VerifyEValueWithPubkeyIndex failed\n");
 				HSMHardwareDeinit();
-				return (1);
+				return 1;
 			}
 		}
 		right_count++;
@@ -159,7 +159,7 @@ unsigned long HSMSelfTest(unsigned long test_loop)
 
 
 
-int thread1(void)
+void * thread1(void *arg)
 {
     int error_count = 0;
 	int right_count = 0;
@@ -181,36 +181,33 @@ int thread1(void)
 		0X00,0X11,0X22,0X33,0X44,0X55,0X66,0X77,0X88,0X99,0XAA,0XBB,0XCC,0XDD,0XEE,0XFF,
 		0X00,0X11,0X22,0X33,0X44,0X55,0X66,0X77,0X88,0X99,0XAA,0XBB,0XCC,0XDD,0XEE,0XFF,
 	};
+
+	printf(" thread1\n");
 	/*Create a pointer struct and Init it. */
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
-
-	// /*Init the hardware . spi interface  and reset,busy io*/
-	// HSMHardwareInit(10000000);
-	// /*reset the 512A module*/
-	// HSMReset();
 	
+
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
 	{
 		printf("sync failed\n");
 		HSMHardwareDeinit();
-		return 1;
+		pthread_exit("thread1 exit! ISTECC512A_StatusSync  failed \n");
 	}
 	printf("sync success\n");
 	for(i=0;i<1;i++)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
-		ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
-
-		//printf("THREAD2 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
-		if((version[0] != 0X1) ||(version[1] != 0x8)||(version[2] != 0X9)||(version[3] != 7))
+		ret  = ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
+		if(ret)
 		{
 			printf("THREAD1 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
 			printf("read verison failed.\n");
-			error_count += 1;
+			HSMHardwareDeinit();
+			pthread_exit("thread1 exit! ISTECC512A_CosVersionRead  failed \n");
 		}
 		else
 		{
@@ -220,7 +217,6 @@ int thread1(void)
 	
 	}
 	
-
 	/*pin confirm*/
 	printf("pin is 8 byte password.!\n");
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_PinConfirm(default_pin, 8);
@@ -228,7 +224,8 @@ int thread1(void)
 	{
 		printf("pin confirm failed!\n");
 		error_count++;
-		return (1);
+		HSMHardwareDeinit();
+		pthread_exit("thread1 exit! ISTECC512A_PinConfirm  failed \n");
 	}
 	else
 	{
@@ -242,10 +239,9 @@ int thread1(void)
 		{
 			printf("ISTECC512A_SM2GenKeyPair failed!\n");
 			HSMHardwareDeinit();
-			return (1);
+			pthread_exit("thread1 exit! ISTECC512A_SM2GenKeyPair  failed \n");
 		}
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -258,7 +254,7 @@ int thread1(void)
 			{
 				printf("ISTECC512A_SM2Encrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread1 exit! ISTECC512A_SM2Encrypt  failed \n");
 			}
 			
 			memset(temp,0x00,sizeof(temp));
@@ -266,7 +262,7 @@ int thread1(void)
 			{
 				printf("ISTECC512A_SM2Decrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread1 exit! ISTECC512A_SM2Decrypt  failed \n");
 			}
 			else
 			{
@@ -276,7 +272,7 @@ int thread1(void)
 				{
 					printf("result of decrypt comapre failed!\n");
 					HSMHardwareDeinit();
-					return (1);
+					pthread_exit("thread1 exit! ISTECC512A_SM2Decrypt compare  failed \n");
 				}
 			}
 
@@ -285,15 +281,14 @@ int thread1(void)
 			{
 				printf("ISTECC512A_SM2SignEValue failed\n");
 				HSMHardwareDeinit();
-				return (1);
-
+				pthread_exit("thread1 exit! ISTECC512A_SM2SignEValue  failed \n");
 			}
 			hex_dump(rs,64,32,"RS:");
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2VerifyEValueWithPubkeyIndex(i,hash,rs))
 			{
 				printf("ISTECC512A_SM2VerifyEValueWithPubkeyIndex failed\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread1 exit! ISTECC512A_SM2VerifyEValueWithPubkeyIndex  failed \n");
 			}
 		}
 		right_count++;
@@ -306,11 +301,11 @@ int thread1(void)
 	printf("4.ISTECC512A keyi _SM2VerifyEValueWithPubkeyIndex:\n");
 	printf("TEST COUNT:%8d\n",right_count);
 	HSMHardwareDeinit();
-	return 0;
+	pthread_exit("thread1 exit!\n");
 
 }
 
-int thread2(void)
+void * thread2(void *arg)
 {
   int error_count = 0;
 	int right_count = 0;
@@ -332,22 +327,19 @@ int thread2(void)
 		0X00,0X11,0X22,0X33,0X44,0X55,0X66,0X77,0X88,0X99,0XAA,0XBB,0XCC,0XDD,0XEE,0XFF,
 		0X00,0X11,0X22,0X33,0X44,0X55,0X66,0X77,0X88,0X99,0XAA,0XBB,0XCC,0XDD,0XEE,0XFF,
 	};
+
+	printf(" thread2\n");
 	/*Create a pointer struct and Init it. */
 	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
 
-	// /*Init the hardware . spi interface  and reset,busy io*/
-	// HSMHardwareInit(10000000);
-	// /*reset the 512A module*/
-	// HSMReset();
-	
 	/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 	ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
 	if (ret)
 	{
 		printf("sync failed\n");
 		HSMHardwareDeinit();
-		return 1;
+		pthread_exit("thread2 exit! ISTECC512A_StatusSync  failed \n");
 	}
 	printf("sync success\n");
 
@@ -356,9 +348,8 @@ int thread2(void)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
-		ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
-		//printf("THREAD2 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
-		if((version[0] != 0X1) ||(version[1] != 0x8)||(version[2] != 0X9)||(version[3] != 7))
+		ret = ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
+		if(ret)
 		{
 			printf("THREAD2 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
 			printf("read verison failed.\n");
@@ -379,7 +370,8 @@ int thread2(void)
 	{
 		printf("pin confirm failed!\n");
 		error_count++;
-		return (1);
+		HSMHardwareDeinit();
+		pthread_exit("thread2 exit! ISTECC512A_PinConfirm failed \n");
 	}
 	else
 	{
@@ -393,10 +385,9 @@ int thread2(void)
 		{
 			printf("ISTECC512A_SM2GenKeyPair failed!\n");
 			HSMHardwareDeinit();
-			return (1);
+			pthread_exit("thread2 exit! ISTECC512A_SM2GenKeyPair failed \n");
 		}
 		printf("INDEX %d:\n",i);
-		// ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
 		ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
 	}
 
@@ -409,7 +400,7 @@ int thread2(void)
 			{
 				printf("ISTECC512A_SM2Encrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread2 exit! ISTECC512A_SM2Encrypt failed \n");
 			}
 			
 			memset(temp,0x00,sizeof(temp));
@@ -417,7 +408,7 @@ int thread2(void)
 			{
 				printf("ISTECC512A_SM2Decrypt failed!\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread2 exit! ISTECC512A_SM2Decrypt failed \n");
 			}
 			else
 			{
@@ -427,7 +418,7 @@ int thread2(void)
 				{
 					printf("result of decrypt comapre failed!\n");
 					HSMHardwareDeinit();
-					return (1);
+					pthread_exit("thread2 exit! ISTECC512A_SM2Decrypt compare failed \n");
 				}
 			}
 
@@ -436,15 +427,14 @@ int thread2(void)
 			{
 				printf("ISTECC512A_SM2SignEValue failed\n");
 				HSMHardwareDeinit();
-				return (1);
-
+				pthread_exit("thread2 exit! ISTECC512A_SM2SignEValue failed \n");
 			}
 			hex_dump(rs,64,32,"RS:");
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2VerifyEValueWithPubkeyIndex(i,hash,rs))
 			{
 				printf("ISTECC512A_SM2VerifyEValueWithPubkeyIndex failed\n");
 				HSMHardwareDeinit();
-				return (1);
+				pthread_exit("thread2 exit! ISTECC512A_SM2VerifyEValueWithPubkeyIndex failed \n");
 			}
 		}
 		right_count++;
@@ -457,8 +447,7 @@ int thread2(void)
 	printf("4.ISTECC512A keyi _SM2VerifyEValueWithPubkeyIndex:\n");
 	printf("TEST COUNT:%8d\n",right_count);
 	HSMHardwareDeinit();
-	return 0;
-	
+	pthread_exit("thread2 exit!\n");
 }
 
 unsigned long HSMSelfTestWithMultithreading(void)
@@ -466,9 +455,10 @@ unsigned long HSMSelfTestWithMultithreading(void)
  	int ret  =  0;
 	pthread_t hsm_thread1;
 	pthread_t hsm_thread2;
-		/*Init the hardware . spi interface  and reset,busy io*/
+	/*Init the hardware . spi interface  and reset,busy io*/
+	/*Thread 1*/
+	printf("aaa\n");
 	HSMHardwareInit(10000000);
-		/*Thread 1*/
 	ret = pthread_create(&hsm_thread1,NULL,thread1,NULL);
 	if(ret != 0)
 	{
@@ -483,10 +473,14 @@ unsigned long HSMSelfTestWithMultithreading(void)
 		perror("Thread creation failed");
 		exit(EXIT_FAILURE);
 	}
+	
+	/*If you want to exit test. input 1234*/
+	do{
+		scanf("%d",&ret);
+	}	while(ret != 1234);
 
-	scanf("%d",&ret);
-	if(ret == 1234)
-		return 0;
+	HSMHardwareDeinit();
+	return 0;	
 }
 
 
@@ -537,13 +531,13 @@ unsigned long HSMSelfTestWithMulProcess(void)
 	{
 		/*demo read verison.
 		the verison is  1.8.7  .in this time(2022/6/16)*/
-		ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
-		//printf("THREAD2 module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
-		if((version[0] != 0X1) ||(version[1] != 0x8)||(version[2] != 0X9))
+		ret = ISTECC512AFunctionPointerStructure.ISTECC512A_CosVersionRead(version);
+		if(ret)
 		{
 			printf("HSMSelfTestWithMulProcess module's verison is  %2d %2d %2d %2d\n", version[0], version[1], version[2],version[3]);
 			printf("read verison failed.\n");
-			error_count += 1;
+			HSMHardwareDeinit();
+			return 1;
 		}
 		else
 		{
@@ -560,26 +554,13 @@ unsigned long HSMSelfTestWithMulProcess(void)
 	{
 		printf("pin confirm failed!\n");
 		error_count++;
-		return (1);
+		HSMHardwareDeinit();
+		return 1;
 	}
 	else
 	{
 		printf("pin confirm success!\n");
 	}
-
-	//don't genreate key pairs. in other process have done.
-	// /*Generate 16 group key pairs.*/
-	// for(i=14;i<16;i++)
-	// {	
-	// 	if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(i))
-	// 	{
-	// 		printf("ISTECC512A_SM2GenKeyPair failed!\n");
-	// 		return (1);
-	// 	}
-	// 	printf("INDEX %d:\n",i);
-	// 	ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPrikey(i,sm2_private_key);
-	// 	ISTECC512AFunctionPointerStructure.ISTECC512A_SM2ExportPubkey(i,sm2_public_key,sm2_public_key+32);
-	// }
 
 	/*set loops of test.*/
 	while(1)
@@ -589,14 +570,16 @@ unsigned long HSMSelfTestWithMulProcess(void)
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2Encrypt(i,plain_text,16,cipher_text))
 			{
 				printf("ISTECC512A_SM2Encrypt failed!\n");
-				return (1);
+				HSMHardwareDeinit();
+				return 1;
 			}
 			
 			memset(temp,0x00,sizeof(temp));
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2Decrypt(i,cipher_text,16+96,temp))
 			{
 				printf("ISTECC512A_SM2Decrypt failed!\n");
-				return (1);
+				HSMHardwareDeinit();
+				return 1;
 			}
 			else
 			{
@@ -605,7 +588,8 @@ unsigned long HSMSelfTestWithMulProcess(void)
 				if(memcmp(temp,plain_text,16))
 				{
 					printf("result of decrypt comapre failed!\n");
-					return (1);
+					HSMHardwareDeinit();
+					return 1;
 				}
 			}
 
@@ -613,14 +597,16 @@ unsigned long HSMSelfTestWithMulProcess(void)
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2SignEValue(i,hash,rs))
 			{
 				printf("ISTECC512A_SM2SignEValue failed\n");
-				return (1);
+				HSMHardwareDeinit();
+				return 1;
 
 			}
 			hex_dump(rs,64,32,"RS:");
 			if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2VerifyEValueWithPubkeyIndex(i,hash,rs))
 			{
 				printf("ISTECC512A_SM2VerifyEValueWithPubkeyIndex failed\n");
-				return (1);
+				HSMHardwareDeinit();
+				return 1;
 			}
 		}
 		right_count++;
@@ -632,8 +618,6 @@ unsigned long HSMSelfTestWithMulProcess(void)
 	printf("3.ISTECC512A_SM2SignEValue:\n");
 	printf("4.ISTECC512A keyi _SM2VerifyEValueWithPubkeyIndex:\n");
 	printf("TEST COUNT:%8d\n",right_count);
-	scanf("%d",&ret);
-	if(ret == 1234)
-		return 0;
+	HSMHardwareDeinit();
 	return 0;
 }

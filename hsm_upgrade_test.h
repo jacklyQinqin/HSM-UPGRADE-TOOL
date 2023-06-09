@@ -9,4 +9,5 @@
 #define __HSM_UPGRADE_TEST_H__
 
 unsigned long HSMUpgradeTest(int argc, char *argv[]);
+
 #endif

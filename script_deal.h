@@ -26,21 +26,18 @@ SPI线上发送数据:
 SPI线上返回数据:
 头:50 
 */
-// int analysis_one_line_script(char * script_line,char *send,char *rec_buff);
-// /**/
-// int send_script_and_rec_return_value(char *send, int send_len,char *compare_return_value,int rec_len,ISTECCFunctionPointer_t * p);
+
 /*评估需要的功能表
 1.脚本文件读取
 2.SPI协议解析
 3.
 */
 #define RESPOND_COMPARE_ERROR 	0X01
-#define CMD_XOR_ERROR  		0X02
-#define RESPOND_HEAD_ERROR 0X03
+#define CMD_XOR_ERROR  		    0X02
+#define RESPOND_HEAD_ERROR      0X03
 #define RESPOND_COMPARE_SUCCESS 0X00
 
 int analysis_one_line_script(char * script_line,char *send,int * send_len, char *compare,int * compare_len);
-
 long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p);
 long send_script_cmd(unsigned char *send, unsigned long send_len,ISTECCFunctionPointer_t * p);
 int script_analysis(char * file_name,char comapre_en);
