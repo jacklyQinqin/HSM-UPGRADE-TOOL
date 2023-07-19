@@ -327,6 +327,98 @@ int analysis_one_line_script(char * script_line,char *send,int * send_len, char 
     return ret;
 }
 
+/*解析一行脚本并将脚本的发送值/发送长度  接收对比值/接收对比值长度分别输出到指定的值
+/*script_line :输入的一行脚本:例如 APDU=bf450200081392375533957469,0x90000
+bootloader 格式的直接发送和比较即可。
+*/
+int analysis_one_line_script_for_bootloader(char * script_line,char *send,int * send_len, char *compare,int * compare_len)
+{
+    int ret;
+    char buff[2048] = {0x00};
+    char str_cmd[2048];
+    char hex_cmd[2048];
+    char str_compare[2048];
+    char hex_compare[2048];
+
+    char division[] = ",";
+    char * ptr;
+    int len = strlen(script_line);
+
+    memset(buff,0x00,strlen(buff));
+    memset(str_cmd,0x00,strlen(str_cmd));
+    memset(hex_cmd,0x00,strlen(hex_cmd));
+    memset(str_compare,0x00,strlen(str_compare));
+    memset(hex_compare,0x00,strlen(hex_compare));
+    
+    #if(DEBUG_ON != 0)
+    printf("SCRIPT_LEN is %4d\n",len);
+    #endif 
+    
+    memcpy(buff,script_line,len);
+    /*去除可能的\r\n*/
+    if((buff[len-1] == '\r') || ((buff[len-1] == '\n')))
+    {
+        buff[len-1] = 0x00;
+        len-=1;
+    }
+    if((buff[len-1] == '\r') || ((buff[len-1] == '\n')))
+    {
+        buff[len-1] = 0x00;
+        len-=1;
+    }
+    /*计算bootloader下载数据的长度*/
+    // len = strlen(buff);
+
+    #if(DEBUG_ON != 0)
+    printf("SCRIPT_LEN is %4d\n",len);
+    #endif 
+  
+    /*
+    *以APDU=bf450200081392375533957469,0x9000为例
+    *1.根据,将APDU和返回值进行拆分
+    *  指令:APDU=bf450200081392375533957469
+    *  返回值:,0x9000
+    *  去掉APDU= 和 ,0x 保留数据部分
+    * */
+    #if(DEBUG_ON != 0)
+    /*打印读取到的脚本信息*/
+    printf("SCRIPT IS %s\n",buff);
+    #endif 
+    /*获取 , 分割符的地址,将指令和接收值分解为2个部分*/
+    ptr = strstr(buff,division);
+    #if(DEBUG_ON != 0)
+    printf("The ptr is at position: %p\n", ptr);
+    printf("The buff is at position: %p\n", &buff[5]);
+    #endif
+    /**/
+    memcpy(str_cmd,&buff[5],ptr - &buff[5]);
+    /*返回值从,开始,0x 三个字符*/
+    memcpy(str_compare,ptr+3, &buff[len-1] - (ptr+2));    
+    #if(DEBUG_ON != 0)
+    printf("CMD: %s  LEN: %4d\n",str_cmd,ptr - &buff[5]);
+    printf("REC: %s  LEN: %4d\n",str_compare,strlen(str_compare));
+    #endif
+    /*将其转换为HEX格式*/
+    str_to_hex(str_cmd,strlen(str_cmd),hex_cmd);
+	* send_len = (ptr - &buff[5]) >> 1;
+	
+	str_to_hex(str_compare,strlen(str_compare),hex_compare);
+	* compare_len = strlen(str_compare) >> 1;
+
+    memcpy(compare,hex_compare,*compare_len);
+    
+    /*将发送数据加头和XOR.*/
+	//usb_format_to_spi_format(hex_cmd,send_len,send);
+    memcpy(send,hex_cmd,*send_len);
+    #if(DEBUG_ON != 0)
+    printf("the send len  is %4d and the compare len is %4d\n",*send_len,*compare_len);
+    #endif
+    ret = 0;
+    return ret;
+}
+
+
+
 int compare_respond_value(char * respond, char *comapare)
 {
 	int ret = 0;
@@ -618,6 +710,94 @@ int script_analysis(char * file_name,char comapre_en)
     HSMMsDelay(60);
 
     fclose(fp);
-	printf("fclose fp and you neet to reset HSM or power again\n");
+    return 0;
+}
+
+
+
+/*ADD NEW FUNCITON FOR NEW MODE APP*/
+int script_analysis_for_bootloader(char * file_name,char comapre_en)
+{
+	FILE * fp;
+    int count = 0;
+	int i = 0;
+    int ret; 
+    char string[]  = "script_analysis_for_bootloader\n";
+    
+    /*Modify to a smaller memory.*/
+    char line[2048];
+    char send[2048];
+	char receive[2048];
+	char compare[2048];
+    int send_len;
+    int compare_len;
+
+	struct timeval tv;
+	struct timeval tv2;
+    long delta;
+	/*Create a pointer struct and Init it. */
+  	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
+ 	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
+    printf("the file is %s\n",file_name);
+    unsigned char cod_guide[]={0xbf,0x49,0x00,0x00,0x00};
+    fp = fopen(file_name,"r");
+    if(fp ==NULL)
+    {
+        printf("fp is NULL");
+        return 1;
+    }
+
+	gettimeofday(&tv,NULL);
+	i = 0;
+    memset(line,0x00,sizeof(line));
+	while(fgets(line,2048,fp))
+    {   	
+        printf("TEST READ LIEN SUCCESS\n");
+		/*解析一行脚本将其拆分为发送值和返回对比值--发送值为SPI格式+头+长度+XOR*/
+		analysis_one_line_script_for_bootloader(line,send,&send_len,compare,&compare_len);
+		/*发送指令*/
+		ISTECC512AFunctionPointerStructure.ISTECC512A_SendOneMessageOneShot(send,send_len);
+        if(i==1)
+		    HSMMsDelay(500);
+        else
+            HSMMsDelay(10);
+		/*接收响应值.
+        BF46 是生效COS.不需要读取返回值.也不需要比较。
+        */
+        if(send[1] != 0X46)
+		    ISTECC512AFunctionPointerStructure.ISTECC512A_ReceiveOneMessage(receive,16);
+		/*compare the respond*/
+		if((comapre_en) && (send[1] != 0X46))
+		{
+			// ret = compare_respond_value(receive,compare);
+            ret = memcmp(receive,compare,2);
+			if(ret!= RESPOND_COMPARE_SUCCESS)
+			{
+				printf("WRONG RESPOND!\n");
+				hex_dump(compare,16,16,"COMPARE:");
+				printf("SCRIPT IS %4d,COMPARE FAILED!\n",i);
+				exit(1);
+			}
+            else
+            {
+                printf("COMPARE SUCCESS!\n");
+            }
+		}
+		i++;
+        memset(line,0x00,sizeof(line));
+        memset(send,0x00,sizeof(send));
+        printf("TEST CURRENT LINE:%4d\n",i);
+    }
+    
+	gettimeofday(&tv2,NULL);
+	delta = (tv2.tv_sec*1000000 + tv2.tv_usec) - (tv.tv_sec*1000000 + tv.tv_usec);
+	printf("microsecond interval:%8ld MS\n",delta/1000);  //ms = us*1000
+	printf("total line %4d\n",i);
+	if(comapre_en)
+	{
+		printf("compare enable and success.\n");
+	}
+
+    fclose(fp);
     return 0;
 }

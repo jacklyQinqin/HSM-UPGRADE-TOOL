@@ -232,7 +232,7 @@ void * thread1(void *arg)
 		printf("pin confirm success!\n");
 	}
 
-	/*Generate 16 group key pairs.*/
+	/*Generate 8 group key pairs.*/
 	for(i=0;i<8;i++)
 	{	
 		if(ISTECC512AFunctionPointerStructure.ISTECC512A_SM2GenKeyPair(i))

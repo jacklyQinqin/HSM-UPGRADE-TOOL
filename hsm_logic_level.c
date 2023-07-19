@@ -73,6 +73,8 @@
 /*创建一个全局的锁*/
 #include <pthread.h>
 #include <semaphore.h>
+
+/*线程锁*/
 static pthread_mutex_t hsm_mutex_pthread;
 /*init pthread mutext*/
 int  HSMThreadMutexInit(void)
@@ -106,7 +108,6 @@ int HSMSetSemphre(void);
 static void HSMDeleteSemphre(void);
 static int HSMPostSemphre(void);
 int HSMVSemphre(void);
-
 int HSMSempohreInit(void);
 
 
@@ -191,11 +192,20 @@ int HSMGetSem(void)
     return  sem_union.val;
 }
 
+/*这里是为了在其他的地方可以单独的锁定SPI的硬件*/
+int HSMSetPMutexAndSemphre(void)
+{
+    pthread_mutex_lock(&hsm_mutex_pthread);
+    HSMPSemphre();
+}
 
-
-
+int HSMClearPMutexAndSemphre(void)
+{
+    HSMVSemphre();
+    pthread_mutex_unlock(&hsm_mutex_pthread);
+}
 /*print log yes or no*/
-#define HSM_LOGIC_LINIX_DEBUG_ON 1
+#define HSM_LOGIC_LINIX_DEBUG_ON 0
 /*send and receive buff*/
 static unsigned char tx_buff[2064] = {0};
 static unsigned char rx_buff[2064] = {0};
@@ -233,7 +243,7 @@ unsigned long CosReadVersion(unsigned char *version)
     unsigned char rx_buff[2064] = {0};
     unsigned long ret = 0;
     unsigned long tx_buff_len = IS32U512A_SM2_MODULE_CMD_LEN;
-    unsigned long rx_buff_len = 6;
+    unsigned long rx_buff_len = 16;
     /*copy the command to send buff*/
     const uint8_t read_version[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0x10, 0x06, 0x00, 0x0, 0x0};
     
@@ -2160,8 +2170,8 @@ unsigned long APPErase(void)
     unsigned long rx_buff_len = 4;
 
     const uint8_t read_version[IS32U512A_SM2_MODULE_CMD_LEN] = {0xbf, 0xfb, 0x06, 0x00, 0x0, 0x0};
-    pthread_mutex_lock(&hsm_mutex_pthread);
-    HSMPSemphre();
+    // pthread_mutex_lock(&hsm_mutex_pthread);
+    // HSMPSemphre();
     memcpy(tx_buff, read_version, IS32U512A_SM2_MODULE_CMD_LEN);
 
     tx_buff[IS32U512A_SM2_DATA_LEN_H_OFFSET] = tx_buff_len / 256;
@@ -2172,13 +2182,13 @@ unsigned long APPErase(void)
     ret = HSMWrite(tx_buff, tx_buff_len);
     if (0 != ret)
     {
-        HSMVSemphre();
-        pthread_mutex_unlock(&hsm_mutex_pthread);
+        // HSMVSemphre();
+        // pthread_mutex_unlock(&hsm_mutex_pthread);
         return fail;
     }
     HSMMsDelay(20);
-    HSMVSemphre();
-    pthread_mutex_unlock(&hsm_mutex_pthread);
+    // HSMVSemphre();
+    // pthread_mutex_unlock(&hsm_mutex_pthread);
     return 0;
 }
 
@@ -2212,6 +2222,20 @@ unsigned long IS32U512ASendOneMessage(unsigned char *send, unsigned long len)
     return sucess;
 }
 
+unsigned long IS32U512ASendOneMessageOneShot(unsigned char *send, unsigned long len)
+{
+    unsigned long time;
+    unsigned long i = 0;
+    unsigned long remainder;
+    unsigned long ret;
+    time = (len + 15) / 16;
+    memcpy(tx_buff, send, len);
+    ret = HSMWrite(tx_buff, len);
+#if (HSM_LOGIC_LINIX_DEBUG_ON == 1)
+     hex_dump(tx_buff, len, 16, "send one meessage:");
+#endif
+    return sucess;
+}
 /**
  * @brief
  *
@@ -2521,4 +2545,5 @@ unsigned long FunctionPointerInit(ISTECCFunctionPointer_t *p)
     /*add  SendOneMessage and RecOneMessage for upgrade tool*/
     p->ISTECC512A_SendOneMessage = IS32U512ASendOneMessage;
     p->ISTECC512A_ReceiveOneMessage = IS32U512AReceiveOneMessage;
+    p->ISTECC512A_SendOneMessageOneShot = IS32U512ASendOneMessageOneShot;
 }

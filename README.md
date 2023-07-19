@@ -214,4 +214,17 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
     We delete some commentted code. we don't need then now. 
     Some funciton declarations and external referenees were added. complier warings are eliminated. 
 
+## verison 1.9.0.1(01)
+	1. Added bootloader.Support the function of retaining SM2 keys when upgrading.
+	2. Adjusted the process of upgrading the function. The upgrade process of HSM is not interrupted by other processes and threads.
+	If the HSM chip does not have a bootloader. The bootloader will be downloaded and the new version of the firmware will be downloaded through the bootloader.
+	If the HSM chip has an older version of the firmware. The firmware will be erased, and the bootloader will be downloaded, and the new version of the firmware will be downloaded through the bootloader.
+	If the HSM already has a bootloader. The new version of the firmware will be downloaded directly.
+	If the HSM already has bootlaoder and firmware, it will erase the firmware and download the new version of the firmware via bootloader.
+	3. Note: The format of the upgrade file for the new version and the old version is different. and will be unified into a bootloader version.
+	4. The new version of the firmware is 1.9.0.1.
+	The version of bootloader is 1.0.3 + the string 'spiloader' is used to distinguish firmware from bootloader.
+	
+
+
 
