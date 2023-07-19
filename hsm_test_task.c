@@ -1319,4 +1319,3 @@ unsigned long ISTECCMODADDTest(void)
 	HSMHardwareDeinit();
 	return 0;
 }
-
