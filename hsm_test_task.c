@@ -1336,10 +1336,6 @@ unsigned long EXCEPTIONTest(void)
 	// 	HSMHardwareDeinit();
 	// 	HSMMsDelay(100);
 	// }
-	while(1)
-	{
-		HSMHardwareInit(SPI_SPEED_10M);
-		HSMMsDelay(100);
-	}
+
 	return 0;
 }
