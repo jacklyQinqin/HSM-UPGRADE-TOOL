@@ -1319,3 +1319,27 @@ unsigned long ISTECCMODADDTest(void)
 	HSMHardwareDeinit();
 	return 0;
 }
+
+
+
+
+unsigned long EXCEPTIONTest(void)
+{
+	int ret;
+
+	ISTECCFunctionPointer_t ISTECC512AFunctionPointerStructure;
+	FunctionPointerInit(&ISTECC512AFunctionPointerStructure);
+	/*Init the hardware . spi interface  and reset,busy io*/
+	HSMHardwareInit(SPI_SPEED_10M);
+	// while(1)
+	// {
+	// 	HSMHardwareDeinit();
+	// 	HSMMsDelay(100);
+	// }
+	while(1)
+	{
+		HSMHardwareInit(SPI_SPEED_10M);
+		HSMMsDelay(100);
+	}
+	return 0;
+}
