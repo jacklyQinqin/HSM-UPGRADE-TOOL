@@ -225,6 +225,12 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
 	4. The new version of the firmware is 1.9.0.1.
 	The version of bootloader is 1.0.3 + the string 'spiloader' is used to distinguish firmware from bootloader.
 	
+## verison 1.9.0.1(02)
+    1.Modify the return value of   HSMHardwareInit  and HSMHardwareDeinit (from (unsigned int) to (int))
+    2.Modify the test code of multiple pthread. HSMSelfTestWithMultithreading() .  Hardware initalizaiton before threads are created. and Deinit after exit pthread.
+    3.Modify the function HSMHardwareInit(). add the extern errno; if open device faied. will printf the error number.
+    4.Modify the type of fd. from (static int fd;) to (int  fd;);
 
+ 
 
 
