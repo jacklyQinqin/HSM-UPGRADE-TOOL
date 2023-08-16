@@ -61,7 +61,7 @@ The following sections are what users need to implement
  * @param in_speed 
  * @return unsigned int 
  */
-extern unsigned int  HSMHardwareInit(unsigned long in_speed);
+extern  int  HSMHardwareInit(unsigned long in_speed);
 
 /**
  * @brief 
@@ -69,7 +69,7 @@ extern unsigned int  HSMHardwareInit(unsigned long in_speed);
  * Call at the end
  * @return unsigned int 
  */
-extern unsigned int  HSMHardwareDeinit(void);
+extern  int  HSMHardwareDeinit(void);
 
 /**
  * @brief 

@@ -142,13 +142,13 @@ char SPI_DEV_NAME[100] = "/dev/spidev32766.0";
 int busy = 98;
 int reset = 96;
 
-#define HSM_HARDWARE_DEBUG	0
+#define HSM_HARDWARE_DEBUG	1
 
 //hardware init.
 //spi init
 //and handshake init.
 /*Linux environment, SPI descriptor.*/
-static int fd;
+int fd;
 static int  mode;
 /*bit mode : byte mode.(8bit)*/
 static char bits = DEFAULT_MODE;
@@ -255,8 +255,6 @@ static void UnexportGpioAndInit(void)
 }
 
 
-
-
 /****************************************************************\
 * Function:	    HSMHardwareInit
 *
@@ -283,16 +281,22 @@ static void UnexportGpioAndInit(void)
 * Please refer to your own hardware circuit for initialization of the hardware part, 
 * do not directly use. This partial implementation is for demonstration use only.	
 \****************************************************************/
-unsigned int  HSMHardwareInit(unsigned long in_speed)
+
+int  HSMHardwareInit(unsigned long in_speed)
 {
 	int time  = 0;
     int ret = 0;
     speed = in_speed;
 	int sem_status = -1;
-    printf("hsm_hardware_init and the speed is %ld \n",in_speed);
+    extern int errno;
+	printf("hsm_hardware_init and the speed is %ld \n",in_speed);
     fd = open(SPI_DEV_NAME, O_RDWR);
     if (fd < 0)
-        printf("can't open device");
+    {
+		printf("can't open device");
+		printf("errno is %d\n",errno);
+		exit(0);
+	}
     /*
      * spi mode
      */
@@ -354,8 +358,33 @@ unsigned int  HSMHardwareInit(unsigned long in_speed)
     return 0;
 }
 
+
+/*将信号量和线程锁单独的列举出来*/
+int  MutexAndSemphreInit(void)
+{
+	int ret;
+	/*add semphore init  and mutex init at this.*/
+	/*初始化逻辑层信号量*/
+	HSMSempohreInit();
+	/*初始化HARDWARE层信号量*/
+	HardwareSempohreInit();
+	/*初始化线程锁*/
+	HSMThreadMutexInit();
+
+	ret = HardwareGetSem();
+	if(ret != 1)
+	{
+		printf("FIRST INIT!\n");
+		HSMSetSemphre();
+		HardwareSetSemphre();
+	}
+	else
+	{
+		printf("SEMPHORE HAVE BEEN INITED!\n");
+	}
+}
 /*close spi and release the io */
-unsigned int  HSMHardwareDeinit(void)
+int  HSMHardwareDeinit(void)
 {
 	if(fd > 0)
 	{
@@ -548,6 +577,7 @@ unsigned int HSMGetBusystatus(void)
 /*reset HSM module operation*/
 unsigned int  HSMReset(void)
 {
+	resetPin.pin = reset;
 	gpio_write(&resetPin,0);
 	usleep(10000);
 	gpio_write(&resetPin,1);
