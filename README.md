@@ -232,5 +232,15 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
     4.Modify the type of fd. from (static int fd;) to (int  fd;);
 
  
+## verison 1.9.0.1(03)
 
-
+MODIFY THE HARDWARE INIT  HSMREAD AND HSMWRITE.
+    1.Modify the  HSMRead and HSMWrite.  HSMSpiInit  and close(fd)  will be executed every time. 
+    and add  memset(&tr,0x00,sizeof(tr)); (referce to the nxp community).
+    2.Move the spi init from HSMHardwareInit  to  static int HSMSpiInit(unsigned long in_speed);
+    3.Modify the 
+    ret = ioctl(fd, SPI_IOC_WR_MODE32, &mode);
+    ret = ioctl(fd, SPI_IOC_RD_MODE32, &mode);
+    to 
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
+    ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);

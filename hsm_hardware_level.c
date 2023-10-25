@@ -142,7 +142,7 @@ char SPI_DEV_NAME[100] = "/dev/spidev32766.0";
 int busy = 98;
 int reset = 96;
 
-#define HSM_HARDWARE_DEBUG	1
+#define HSM_HARDWARE_DEBUG	0
 
 //hardware init.
 //spi init
@@ -281,8 +281,7 @@ static void UnexportGpioAndInit(void)
 * Please refer to your own hardware circuit for initialization of the hardware part, 
 * do not directly use. This partial implementation is for demonstration use only.	
 \****************************************************************/
-
-int  HSMHardwareInit(unsigned long in_speed)
+static int HSMSpiInit(unsigned long in_speed)
 {
 	int time  = 0;
     int ret = 0;
@@ -300,11 +299,11 @@ int  HSMHardwareInit(unsigned long in_speed)
     /*
      * spi mode
      */
-    ret = ioctl(fd, SPI_IOC_WR_MODE32, &mode);
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
         printf("can't set spi mode");
 
-    ret = ioctl(fd, SPI_IOC_RD_MODE32, &mode);
+    ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
     if (ret == -1)
         printf("can't get spi mode");
 
@@ -330,12 +329,16 @@ int  HSMHardwareInit(unsigned long in_speed)
     if (ret == -1)
         printf("can't get max speed hz");
 
-
     printf("spi mode: 0x%x\n", mode);
     printf("bits per word: %d\n", bits);
 	printf("spi fd is: %d\n", fd);
+	return fd;
+}
 
-
+int  HSMHardwareInit(unsigned long in_speed)
+{
+	int ret;
+	speed = in_speed;
 	/*add semphore init  and mutex init at this.*/
 	/*初始化逻辑层信号量*/
 	HSMSempohreInit();
@@ -386,11 +389,11 @@ int  MutexAndSemphreInit(void)
 /*close spi and release the io */
 int  HSMHardwareDeinit(void)
 {
-	if(fd > 0)
-	{
-		printf("close spi fd: %d\n",fd);
-		close(fd);
-	}
+	// if(fd > 0)
+	// {
+	// 	printf("close spi fd: %d\n",fd);
+	// 	close(fd);
+	// }
     return 0;
 }
 
@@ -424,17 +427,25 @@ unsigned int HSMWrite(unsigned char * tx,unsigned int tx_len)
 {
     int ret;
 	int tmp_len;
+	int fd;
+	fd = HSMSpiInit(speed);
+	if(fd < 0)
+	{
+		printf("init failed\n");
+		return fd;
+	}
+		
 	if(BYTE_TR_MODE==bits)
 	{
-	    struct spi_ioc_transfer tr =
-	    {
-	        .tx_buf = (unsigned long)tx,
-	        .len = tx_len,
-	        .delay_usecs = delay,
-	        .speed_hz = speed,
-	        .bits_per_word = bits,
-	    };
-		memset();
+	    struct spi_ioc_transfer tr ;
+
+		memset(&tr,0x00,sizeof(tr));
+		tr.tx_buf = (unsigned long)tx;
+	    tr.len = tx_len;
+	    tr.delay_usecs = delay;
+	    tr.speed_hz = speed;
+	    tr.bits_per_word = bits;
+
 	    if (mode & SPI_TX_QUAD)
 	        tr.tx_nbits = 4;
 	    else if (mode & SPI_TX_DUAL)
@@ -452,6 +463,7 @@ unsigned int HSMWrite(unsigned char * tx,unsigned int tx_len)
 	    }
 
 	    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+		close(fd);
 	    if (ret < 1)
 	    {
 	        printf("can't send spi message");
@@ -460,14 +472,15 @@ unsigned int HSMWrite(unsigned char * tx,unsigned int tx_len)
 		#if(HSM_HARDWARE_DEBUG==1)
 		hex_dump(tx, tx_len, 32, "the send message is:");
 		#endif
-
 	    return 0;
 	}
 	else
 	{
+		close(fd);
 		printf("can't support bits.!\n");
 		return 1;
-	}  
+	} 
+	
 }
 
 
@@ -498,17 +511,24 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 {
     int ret;
 	int tmp_len;
-	
+	int fd;
+	fd = HSMSpiInit(speed);
+	if(fd < 0)
+	{
+		printf("init failed\n");
+		return fd;
+	}
+		
+
 	if(BYTE_TR_MODE==bits)
 	{
-		struct spi_ioc_transfer tr =
-		{
-			.rx_buf = (unsigned long)rx,
-			.len = rx_len,
-			.delay_usecs = delay,
-			.speed_hz = speed,
-			.bits_per_word = bits,
-		};
+		struct spi_ioc_transfer tr;
+		memset(&tr,0x00,sizeof(tr));
+		tr.rx_buf = (unsigned long)rx;
+		tr.len = rx_len;
+		tr.delay_usecs = delay;
+		tr.speed_hz = speed;
+		tr.bits_per_word = bits;
 		if (mode & SPI_TX_QUAD)
 			tr.tx_nbits = 4;
 		else if (mode & SPI_TX_DUAL)
@@ -526,6 +546,8 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 		}
 
 		ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
+
+		close(fd);
 		if (ret < 1)
 		{
 			printf("can't rec spi message");
@@ -539,6 +561,7 @@ unsigned int HSMRead(unsigned char * rx,unsigned int rx_len)
 	else
 	{
 		printf("can't support bits.!\n");
+		close(fd);
 		return 1;
 	}  
 }
