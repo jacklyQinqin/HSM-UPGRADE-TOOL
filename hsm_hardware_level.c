@@ -434,7 +434,7 @@ unsigned int HSMWrite(unsigned char * tx,unsigned int tx_len)
 	        .speed_hz = speed,
 	        .bits_per_word = bits,
 	    };
-
+		memset();
 	    if (mode & SPI_TX_QUAD)
 	        tr.tx_nbits = 4;
 	    else if (mode & SPI_TX_DUAL)
