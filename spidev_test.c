@@ -40,7 +40,7 @@
 #define HSM_ONE_KEY_RESOTRE		0X0F  //15  TEST ONE KEY ERSTORE.
 #define HSM_MODADD_TEST			0X10  //16  TEST MOD ADD
 
-#define HSM_EXCEPTION_TEST		0X70  //0X70 测试抛出异常的情况 112
+#define HSM_EXCEPTION_TEST		0X70  //0X70 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 static void pabort(const char *s)
 {

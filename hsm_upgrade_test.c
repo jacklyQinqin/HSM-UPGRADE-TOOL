@@ -24,6 +24,59 @@
 #define ERASE_FIRMWARE_FAILED        		0X02
 #define DOWNLOAD_FIRMWARE_FAILED     		0X03
 
+/*¹¤³§Âë×´Ì¬¶¨Òå£ºÖ»ÓĞ02Ì¬²ÅĞèÒª×ß²âÊÔÌ¬Á÷³Ì£¬03/04/05Ì¬Ö±½ÓÏÂÔØbootloader*/
+#define FACTORY_CODE_STATE_TEST				0X02
+#define FACTORY_CODE_STATE_03				0X03
+#define FACTORY_CODE_STATE_04				0X04
+#define FACTORY_CODE_STATE_05				0X05
+
+/*¶Á¹¤³§ÂëµÄSPIÊ±Ğò²ÎÊı*/
+#define FACTORY_CODE_CMD_LEN				16		/*¶Á¹¤³§ÂëÖ¸Áî³¤¶È*/
+#define FACTORY_CODE_DUMMY_LEN				16		/*dummy ½ÓÊÕ³¤¶È*/
+#define FACTORY_CODE_PACKET_LEN				16		/*Ã¿°üÊı¾İ³¤¶È£º·¢ËÍ/½ÓÊÕÍ³Ò»°´16×Ö½Ú·Ö°ü*/
+#define FACTORY_CODE_RESPOND_LEN			32		/*ÏìÓ¦»º³å³¤¶È£º×´Ì¬ÔÚ offset 25£¬¹ÊÖÁÉÙĞè 26 ×Ö½Ú£¬È¡ 32 ¶ÔÆë=2°ü*/
+#define FACTORY_CODE_RESPOND_PACKETS		(FACTORY_CODE_RESPOND_LEN / FACTORY_CODE_PACKET_LEN)	/*ÏìÓ¦°üÊı=2*/
+#define FACTORY_CODE_STATE_INDEX			25		/*×´Ì¬×Ö½ÚÔÚÏìÓ¦ÖĞµÄÆ«ÒÆ*/
+#define FACTORY_CODE_DELAY_MS				5		/*¹Ì¶¨ÑÓÊ±5ms*/
+
+/*------------------------- ²âÊÔÌ¬(02Ì¬)Á÷³Ì²ÎÊı -------------------------*/
+/*²âÊÔÌ¬Ö¸Áî·¢ËÍ»º³åÇø³¤¶È£º±ØĞëÊÇ 16 µÄÕûÊı±¶£¨SendOneMessage °´ 16 ×Ö½Ú·Ö°ü£©£¬
+  ²»×ã²¿·ÖÓÃ 0xFF ²¹Æë£¬Óë spiReadFactoryCmd µÄ³¤¶È×Ö¶Î+Ìî³ä·½Ê½Ò»ÖÂ*/
+#define TEST_MODE_CMD1_BUF_LEN				32		/*test_1£ºÓĞĞ§22×Ö½Ú(BF45¼ø±ğ)£¬²¹10×Ö½Ú0xFF*/
+#define TEST_MODE_CMD2_BUF_LEN				16		/*test_2£ºÓĞĞ§14×Ö½Ú(BFEE FT)£¬²¹2×Ö½Ú0xFF*/
+#define TEST_MODE_CMD3_BUF_LEN				16		/*test_3£ºÓĞĞ§14×Ö½Ú(BFEEÍË²âÊÔÌ¬)£¬²¹2×Ö½Ú0xFF*/
+
+/*²âÊÔÌ¬ÊÕ·¢³¤¶È*/
+#define TEST_MODE_PACKET_LEN				16		/*SPI µ¥°ü³¤¶È*/
+#define TEST_MODE_DUMMY_LEN					16		/*dummy ½ÓÊÕ³¤¶È(1°ü)*/
+#define TEST_MODE_RESPOND_LEN				16		/*ÏìÓ¦½ÓÊÕ³¤¶È(1°ü£¬ÅĞ¾İÓÃµ½Æ«ÒÆ8~11)*/
+#define TEST_MODE_RESPOND_HDR_LEN			8		/*ÏìÓ¦Í·³¤¶È£º50 42 53 55 + 4×Ö½Ú³¤¶È£¬×´Ì¬×Ö¶Î×ÔÆ«ÒÆ8Æğ*/
+
+/*Delay calibration:the MCU side waits with busy loops
+  (for(i=0;i<N;i++),1 loop about 30ns).The DELAY_AFTER macros
+  below are the converted values(rounded UP to ms,minimum 1ms).
+  Calibrate by changing THESE ms values only.*/
+#define TEST_MODE_DELAY_AFTER_CMD1_MS		10UL	
+#define TEST_MODE_DELAY_AFTER_DUMMY1_MS		10UL			
+#define TEST_MODE_DELAY_AFTER_CMD2_MS		5000UL		
+#define TEST_MODE_DELAY_AFTER_DUMMY2_MS		60UL		
+#define TEST_MODE_DELAY_AFTER_CMD3_MS		10UL		
+#define TEST_MODE_DELAY_AFTER_DUMMY3_MS		10UL			
+#define TEST_MODE_RESET_WAIT_MS				1000UL
+
+/*
+  ³ı·ÇÈ·ÈÏÊ±ÄÜÁËHSM-RESET¹¦ÄÜ¡£·ñÔòTEST_MODE_INCLUDE_DOWNLOADÈ·±£Îª0.Èç¹û²»È·ÈÏ´Ë¹¦ÄÜ¡£Çë±£³ÖÎª0.
+  Only if the HSM-RESET function is confirmed, TEST_MODE_INCLUDE_DOWNLOAD can be set to 1. 
+  If this function is not confirmed, please keep it at 0.
+ */
+#define TEST_MODE_INCLUDE_DOWNLOAD			0
+
+/*¹¤³§Âë¶ÁÈ¡Óë²âÊÔÌ¬Á÷³ÌµÄ·µ»ØÂë*/
+#define READ_FACTORY_CODE_SUCCESS			0X00
+#define READ_FACTORY_CODE_FAILED			0X01
+#define TEST_MODE_PROCESS_SUCCESS			0X00
+#define TEST_MODE_PROCESS_FAILED			0X01
+
 /*Print log with English*/
 static void print_upgrade_message(void)
 {
@@ -47,17 +100,413 @@ extern char SPI_DEV_NAME[100];
 extern int busy;
 extern int reset;
 
+/****************************************************************\
+* Function:			FactoryCodeDelay
+*
+* Description: 		¶Á¹¤³§ÂëÊ±ÓÃµÄ¹Ì¶¨ÑÓÊ±£¬Ã¿´Î 5ms¡£
+*
+* Input:
+*					None
+*
+* Return:
+*					None
+\****************************************************************/
+static void FactoryCodeDelay(void)
+{
+	HSMMsDelay(FACTORY_CODE_DELAY_MS);
+}
+
+/****************************************************************\
+* Function:			ReadFactoryCodeState
+*
+* Description: 		¶ÁÈ¡¹¤³§Âë£¬²¢´ÓÖĞÈ¡³öµ±Ç°×´Ì¬×Ö½Ú¡£
+*					Ğ¾Æ¬´¦ÓÚ ROM boot Ì¬Ê±£¬ÓÃ´Ë½Ó¿ÚÅĞ¶ÏÊÇ·ñĞèÒªÏÈ×ß²âÊÔÌ¬Á÷³Ì¡£
+*
+* Calls:
+*					ISTECC512A_SendOneMessage		- ·Ö°ü·¢ËÍ(Ã¿°ü16×Ö½Ú)
+*					ISTECC512A_ReceiveOneMessage	- ·Ö°ü½ÓÊÕ(Ã¿°ü16×Ö½Ú)
+*
+* Input:
+*					pFunc	- ÒÑ Init µÄÂß¼­²ãº¯ÊıÖ¸Õë½á¹¹Ìå
+*					state	- Êä³ö²ÎÊı£¬¹¤³§ÂëÖĞµÄ×´Ì¬×Ö½Ú(02/03/04/05...)
+*
+* Return:
+*					0X00(READ_FACTORY_CODE_SUCCESS) £º¶ÁÈ¡³É¹¦
+*					0X01(READ_FACTORY_CODE_FAILED)  £º¶ÁÈ¡Ê§°Ü
+*
+* Others:
+*					Ê±Ğò¶ÔÆë MCU ²àÊµÏÖ£º
+*					  1. ·¢ 16 ×Ö½Ú¶Á¹¤³§ÂëÖ¸Áî(1°ü)
+*					  2. ¹Ì¶¨ÑÓÊ± 5ms
+*					  3. ÊÕ 16 ×Ö½Ú dummy(1°ü)
+*					  4. ¹Ì¶¨ÑÓÊ± 5ms
+*					  5. ÏÔÊ½°´ 16 ×Ö½Ú·Ö°üÊÕÏìÓ¦(2°ü)£¬×´Ì¬È¡ receive_data[25]
+\****************************************************************/
+static unsigned long ReadFactoryCodeState(ISTECCFunctionPointer_t *pFunc,
+                                          unsigned char *state)
+{
+	/*¶Á¹¤³§ÂëÖ¸Áî£º40 42 53 55 | 0E 00 00 00 | BF 48 00 00 12 EF | FF FF */
+	const unsigned char spiReadFactoryCmd[FACTORY_CODE_CMD_LEN] = {
+		0x40, 0x42, 0x53, 0x55, 0x0E, 0x00, 0x00, 0x00,
+		0xBF, 0x48, 0x00, 0x00, 0x12, 0xEF, 0xFF, 0xFF
+	};
+	unsigned char spi_read_dummy[FACTORY_CODE_DUMMY_LEN];
+	unsigned char receive_data[FACTORY_CODE_RESPOND_LEN];
+	unsigned long ret;
+	int i;
+	unsigned char temp_status;
+	unsigned long respond_len;
+
+	memset(spi_read_dummy, 0x00, sizeof(spi_read_dummy));
+	memset(receive_data, 0x00, sizeof(receive_data));
+
+	/*Step 1 ¡ª¡ª ·¢ËÍ¶Á¹¤³§ÂëÖ¸Áî£º16×Ö½Ú£¬1°ü£¨ÄÚ²¿Ã¿°üºó HSMMsDelay(2)£©*/
+	ret = pFunc->ISTECC512A_SendOneMessage((unsigned char *)spiReadFactoryCmd,
+	                                       FACTORY_CODE_CMD_LEN);
+	if (ret)
+	{
+		printf("READ FACTORY CODE FAILED: SEND CMD\n");
+		return READ_FACTORY_CODE_FAILED;
+	}
+	FactoryCodeDelay();
+
+	/*Step 2 ¡ª¡ª ½ÓÊÕ 16 ×Ö½Ú dummy£¬ÓÃÓÚ¶ÔÆëÊ±Ğò£º1°ü*/
+	ret = pFunc->ISTECC512A_ReceiveOneMessage(spi_read_dummy,
+	                                          FACTORY_CODE_DUMMY_LEN);
+	if (ret)
+	{
+		printf("READ FACTORY CODE FAILED: RECEIVE DUMMY\n");
+		return READ_FACTORY_CODE_FAILED;
+	}
+	FactoryCodeDelay();
+
+	/*Step 3 ¡ª¡ª ÏÔÊ½°´ 16 ×Ö½Ú·Ö°ü½ÓÊÕÏìÓ¦£º¹² 2 °ü£¨×´Ì¬ÔÚ offset 25£¬ÂäÔÚµÚ2°üÄÚ£©*/
+	for (i = 0; i < FACTORY_CODE_RESPOND_PACKETS; i++)
+	{
+		ret = pFunc->ISTECC512A_ReceiveOneMessage(
+		          receive_data + i * FACTORY_CODE_PACKET_LEN,
+		          FACTORY_CODE_PACKET_LEN);
+		if (ret)
+		{
+			printf("READ FACTORY CODE FAILED: RECEIVE RESPOND (PACKET %d)\n", i);
+			return READ_FACTORY_CODE_FAILED;
+		}
+		FactoryCodeDelay();
+	}
+
+	hex_dump(receive_data, FACTORY_CODE_RESPOND_LEN, 16, "ReadFactoryCodeState rx:");
+
+	/*FIX:check the respond frame header and length field BEFORE
+	  trusting the state byte.The SPI respond header must be
+	  50 42 53 55(see script_deal.h).If the chip is NOT in ROM boot
+	  state,the MISO line is read back as 0xFF garbage,without this
+	  check the garbage would be accepted as a valid state read.*/
+	if ((0x50 != receive_data[0]) || (0x42 != receive_data[1])
+	 || (0x53 != receive_data[2]) || (0x55 != receive_data[3]))
+	{
+		printf("READ FACTORY CODE FAILED: WRONG RESPOND HEADER\n");
+		return READ_FACTORY_CODE_FAILED;
+	}
+	respond_len = receive_data[4] + ((unsigned long)receive_data[5] << 8);
+	if (respond_len < (FACTORY_CODE_STATE_INDEX + 1))
+	{
+		printf("READ FACTORY CODE FAILED: WRONG RESPOND LEN %lu\n", respond_len);
+		return READ_FACTORY_CODE_FAILED;
+	}
+
+	/*×´Ì¬×Ö½Ú*/
+	temp_status = receive_data[FACTORY_CODE_STATE_INDEX];
+	printf("FACTORY CODE STATE :%02X\n", temp_status);
+
+	*state = temp_status;
+	return READ_FACTORY_CODE_SUCCESS;
+}
+
+
+/****************************************************************\
+* Function:			IsDownloadState
+*
+* Description: 		ÅĞ¶ÏĞ¾Æ¬×´Ì¬ÊÇ·ñÊôÓÚ¡¸ÏÂÔØÌ¬¡¹(03/04/05)¡£
+*					¶ÔÓ¦ MCU ²à ((tempstatus==03)||(tempstatus==04)||(tempstatus==05))¡£
+*
+* Input:
+*					state	- ¹¤³§Âë×´Ì¬×Ö½Ú
+*
+* Return:
+*					1 £ºÊÇÏÂÔØÌ¬
+*					0 £º²»ÊÇÏÂÔØÌ¬
+\****************************************************************/
+static int IsDownloadState(unsigned char state)
+{
+	if ((state == FACTORY_CODE_STATE_03) ||
+	    (state == FACTORY_CODE_STATE_04) ||
+	    (state == FACTORY_CODE_STATE_05))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+/****************************************************************\
+* Function:			TestModeExchange
+*
+* Description: 		One send/receive exchange of test mode,
+*							equal to the MCU side:
+*							SPI2SendCommand(cmd);
+*							wait send_delay_ms;
+*							SPI2ReceiveData(spiReadDummy,16);
+*							wait recv_delay_ms;
+*							SPI2ReceiveRespond(receive_data);
+*
+* Input:
+*							pFunc			- function pointer struct from Init
+*							cmd				- command buffer(padded to 16-byte multiple)
+*							cmd_buf_len		- send buffer length
+*							send_delay_ms		- fixed delay after the command is sent
+*							recv_delay_ms		- fixed delay after the dummy is received
+*							dummy				- dummy receive buffer,16 bytes
+*							respond				- respond receive buffer,16 bytes
+*
+* Return:
+*							0X00(TEST_MODE_PROCESS_SUCCESS) exchange success
+*							0X01(TEST_MODE_PROCESS_FAILED)  exchange failed
+\****************************************************************/
+static unsigned long TestModeExchange(ISTECCFunctionPointer_t *pFunc,
+                                      const unsigned char *cmd,
+                                      unsigned long cmd_buf_len,
+                                      unsigned long send_delay_ms,
+                                      unsigned long recv_delay_ms,
+                                      unsigned char *dummy,
+                                      unsigned char *respond)
+{
+	unsigned long ret;
+	unsigned long offset;
+
+	/*·¢ËÍ³¤¶È±ØĞë°´16×Ö½Ú¶ÔÆë£¬Ã¿´Îµ÷ÓÃÖ»·¢ËÍÒ»¸öÊı¾İ°ü*/
+	/*The command length must be aligned to 16 bytes, and each call sends only one data packet*/
+	if (cmd_buf_len % TEST_MODE_PACKET_LEN != 0)
+	{
+		printf("TEST MODE: INVALID COMMAND LENGTH %lu\n", cmd_buf_len);
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	for (offset = 0; offset < cmd_buf_len; offset += TEST_MODE_PACKET_LEN)
+	{
+		ret = pFunc->ISTECC512A_SendOneMessage(
+		          (unsigned char *)(cmd + offset), TEST_MODE_PACKET_LEN);
+		if (ret)
+		{
+			printf("TEST MODE: SEND COMMAND FAILED (PACKET %lu)\n",
+			       offset / TEST_MODE_PACKET_LEN);
+			return TEST_MODE_PROCESS_FAILED;
+		}
+
+		HSMMsDelay(5);
+	}
+	HSMMsDelay(send_delay_ms);
+
+	/*ÊÕ dummy£º16×Ö½Ú£¬1°ü*/
+	ret = pFunc->ISTECC512A_ReceiveOneMessage(dummy, TEST_MODE_DUMMY_LEN);
+	if (ret)
+	{
+		printf("TEST MODE: RECEIVE DUMMY FAILED\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	HSMMsDelay(recv_delay_ms);
+
+	/*ÊÕÏìÓ¦£º16×Ö½Ú£¬1°ü*/
+	ret = pFunc->ISTECC512A_ReceiveOneMessage(respond, TEST_MODE_RESPOND_LEN);
+	if (ret)
+	{
+		printf("TEST MODE: RECEIVE RESPOND FAILED\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	
+	hex_dump(respond, TEST_MODE_RESPOND_LEN, 16, "TestMode respond:");
+
+	return TEST_MODE_PROCESS_SUCCESS;
+}
+
+/****************************************************************\
+* Function:			HSMTestModeProcess
+*
+* Description: 		²âÊÔÌ¬´¦ÀíÁ÷³Ì£¬¶ÔÓ¦ MCU ²à 02 Ì¬·ÖÖ§¡£
+*					½øÈëÌõ¼ş£º¹¤³§Âë×´Ì¬Îª 02£¨ÒÑÓÉµ÷ÓÃ·½ HSMUpgradeTest() ÅĞ¶¨£©¡£
+*					Á÷³Ì£º
+*					  1. ÏÂ·¢ test_1(¼ø±ğÖ¸Áî BF 45) -> Ğ£ÑéÏìÓ¦ 90 00
+*					  2. ÏÂ·¢ test_2(FTÖ¸Áî BF EE)   -> Ğ£ÑéÏìÓ¦ 0F 0F 90 00
+*					  3. ÏÂ·¢ test_3(ÍË³ö²âÊÔÌ¬ BF EE)-> Ğ£ÑéÏìÓ¦ 90 00
+*					  4. Ó²¼ş¸´Î»Ğ¾Æ¬£¬¸´Î»ºóÓ¦½øÈëÏÂÔØÌ¬(03/04/05)
+*
+* Input:
+*					pFunc	- ÒÑ Init µÄÂß¼­²ãº¯ÊıÖ¸Õë½á¹¹Ìå
+*
+* Return:
+*					0X00(TEST_MODE_PROCESS_SUCCESS) £º²âÊÔÌ¬Á÷³ÌÖ´ĞĞ³É¹¦
+*					0X01(TEST_MODE_PROCESS_FAILED)  £º²âÊÔÌ¬Á÷³ÌÖ´ĞĞÊ§°Ü
+*
+* Others:
+*					ÈÎºÎÒ»²½Ğ£ÑéÊ§°Ü¶¼Ö±½Ó·µ»Ø TEST_MODE_PROCESS_FAILED£¬
+*					¶ÔÓ¦ MCU ²àµÄ ExceptionAndErrorHandler()¡£
+*					ÏÂÔØ bootloader ÓÉÍâ²ãÁ÷³ÌÔÚ·µ»ØºóÖ´ĞĞ£¬Ïê¼û TEST_MODE_INCLUDE_DOWNLOAD¡£
+\****************************************************************/
+/****************************************************************\
+* Function:			HSMTestModeProcess
+*
+* Description: 		test mode process, corresponding to the MCU side 02 state branch.
+*					input condition: factory code state is 02 (already determined by the caller HSMUpgradeTest()).	
+*					flow:
+*					  1. Send test_1 (authentication command BF 45) -> check response 90 00	
+*					  2. Send test_2 (FT command BF EE) -> check response 0F 0F 90 00
+*					  3. Send test_3 (exit test mode BF EE) -> check response 90 00
+*					  4. Hardware reset the chip, after reset should enter download state (03/04/05)
+*
+* Input:
+*					pFunc	- initialized logic layer function pointer structure
+*
+* Return:
+*					0X00(TEST_MODE_PROCESS_SUCCESS) £ºtest mode process executed successfully
+*					0X01(TEST_MODE_PROCESS_FAILED)  £ºtest mode process execution failed
+*
+* Others:
+*					Any step validation failure will directly return TEST_MODE_PROCESS_FAILED,
+*					corresponding to the ExceptionAndErrorHandler() on the MCU side.
+*					Download bootloader is executed by the outer process after returning, see TEST_MODE_INCLUDE_DOWNLOAD for details.
+\****************************************************************/
+static unsigned long HSMTestModeProcess(ISTECCFunctionPointer_t *pFunc)
+{
+	/*²âÊÔÌ¬Ö¸Áî£¨»º³åÇø³¤¶ÈĞëÎª16µÄÕûÊı±¶£¬ÓĞĞ§Ö¡ºóÓÃ0xFF²¹Æë£©*/
+	/*Test mode commands (buffer length must be a multiple of 16, valid frames padded with 0xFF)*/
+	/*test_1£º40 42 53 55 | 16 00 00 00 | BF 45 02 00 08 34 61 73 18 45 04 57 02 C8 | FF¡Á10*/
+	const unsigned char test_1[TEST_MODE_CMD1_BUF_LEN] = {
+		0x40, 0x42, 0x53, 0x55, 0x16, 0x00, 0x00, 0x00,
+		0xBF, 0x45, 0x02, 0x00, 0x08, 0x34, 0x61, 0x73,
+		0x18, 0x45, 0x04, 0x57, 0x02, 0xC8,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	};
+	/*test_2£º40 42 53 55 | 0E 00 00 00 | BF EE 01 0F 02 57 | FF¡Á2*/
+	const unsigned char test_2[TEST_MODE_CMD2_BUF_LEN] = {
+		0x40, 0x42, 0x53, 0x55, 0x0E, 0x00, 0x00, 0x00,
+		0xBF, 0xEE, 0x01, 0x0F, 0x02, 0x57,
+		0xFF, 0xFF
+	};
+	/*test_3£º40 42 53 55 | 0E 00 00 00 | BF EE 55 88 00 86 | FF¡Á2*/
+	const unsigned char test_3[TEST_MODE_CMD3_BUF_LEN] = {
+		0x40, 0x42, 0x53, 0x55, 0x0E, 0x00, 0x00, 0x00,
+		0xBF, 0xEE, 0x55, 0x88, 0x00, 0x86,
+		0xFF, 0xFF
+	};
+
+	unsigned char spi_read_dummy[TEST_MODE_DUMMY_LEN];
+	unsigned char receive_data[TEST_MODE_RESPOND_LEN];
+	unsigned char state = 0;
+	unsigned long ret;
+
+	memset(spi_read_dummy, 0x00, sizeof(spi_read_dummy));
+	memset(receive_data, 0x00, sizeof(receive_data));
+
+	/*½øÈëÌõ¼şÒÑÓÉµ÷ÓÃ·½ÅĞ¶¨(¹¤³§Âë×´Ì¬ == 02)*/
+	/*Input condition has been determined by the caller (factory code state == 02)*/
+	printf("TEST MODE: HSM IS IN TEST MODE(02)\n");
+	/*==================== Step 1£ºtest_1 ¼ø±ğ ====================*/
+	if (TestModeExchange(pFunc, test_1, TEST_MODE_CMD1_BUF_LEN,
+	                     TEST_MODE_DELAY_AFTER_CMD1_MS, TEST_MODE_DELAY_AFTER_DUMMY1_MS,
+	                     spi_read_dummy, receive_data))
+	{
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	if ((0x90 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 0])
+	 || (0x00 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 1]))
+	{
+		printf("TEST MODE: AUTHENTICATION FAILED (test_1)\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+
+	/*==================== Step 2£ºtest_2 FT ====================*/
+	if (TestModeExchange(pFunc, test_2, TEST_MODE_CMD2_BUF_LEN,
+	                     TEST_MODE_DELAY_AFTER_CMD2_MS, TEST_MODE_DELAY_AFTER_DUMMY2_MS,
+	                     spi_read_dummy, receive_data))
+	{
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	if ((0x0F != receive_data[TEST_MODE_RESPOND_HDR_LEN + 0])
+	 || (0x0F != receive_data[TEST_MODE_RESPOND_HDR_LEN + 1])
+	 || (0x90 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 2])
+	 || (0x00 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 3]))
+	{
+		printf("TEST MODE: FT FAILED (test_2)\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+
+	/*==================== Step 3£ºtest_3 Exit Test Mode ====================*/
+	if (TestModeExchange(pFunc, test_3, TEST_MODE_CMD3_BUF_LEN,
+	                     TEST_MODE_DELAY_AFTER_CMD3_MS, TEST_MODE_DELAY_AFTER_DUMMY3_MS,
+	                     spi_read_dummy, receive_data))
+	{
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	if ((0x90 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 0])
+	 || (0x00 != receive_data[TEST_MODE_RESPOND_HDR_LEN + 1]))
+	{
+		printf("TEST MODE: EXIT TEST MODE FAILED (test_3)\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+
+	/*==================== Step 4£ºHard Reset + Confirm Download State ====================*/
+	/*¶ÔÓ¦ MCU£ºResetTarget(); tempstatus = ReadChipStatus();*/
+	HSMReset();
+#if (TEST_MODE_RESET_WAIT_MS > 0)
+	HSMMsDelay(TEST_MODE_RESET_WAIT_MS);
+#endif
+
+	ret = ReadFactoryCodeState(pFunc, &state);
+	if (ret)
+	{
+		printf("TEST MODE: READ STATE AFTER RESET FAILED\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+
+	if (!IsDownloadState(state))
+	{
+		printf("TEST MODE: HSM IS NOT IN DOWNLOAD STATE(03/04/05) AFTER RESET, STATE=%02X\n", state);
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	printf("TEST MODE: HSM ENTERED DOWNLOAD STATE, STATE=%02X\n", state);
+
+#if TEST_MODE_INCLUDE_DOWNLOAD
+	HSMReset();
+#if (TEST_MODE_RESET_WAIT_MS > 0)
+	HSMMsDelay(TEST_MODE_RESET_WAIT_MS);
+#endif
+
+	ret = ReadFactoryCodeState(pFunc, &state);
+	if (ret)
+	{
+		printf("TEST MODE: READ STATE AFTER DOWNLOAD FAILED\n");
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	if (IsDownloadState(state))
+	{
+		printf("TEST MODE: DOWNLOAD FAILED, STILL IN STATE %02X\n", state);
+		return TEST_MODE_PROCESS_FAILED;
+	}
+	printf("TEST MODE: DOWNLOAD SUCCESS\n");
+#endif
+
+	return TEST_MODE_PROCESS_SUCCESS;
+}
+
 /*
 TIME:2023-7-15
 Add new feature.
 I will add new feature for  keep sm2 keypair . So the logic is different  from  the old verison.
-å‡çº§æµç¨‹:
-1.åŒæ­¥å¤±è´¥ã€‚è¯´æ˜ä¸æ˜¯loaderå’ŒFW.æ‰§è¡Œ2
-å¦‚æœåŒæ­¥æˆåŠŸ,æ£€æµ‹æ˜¯FWè¿˜æ˜¯BOOTLOADER.å¦‚æœæ˜¯FW.æ‰§è¡Œ3.å¦‚æœæ˜¯LOADER
-2.ä¸‹è½½LOADER
-3.æ“¦é™¤FW.
-4.ä¸‹è½½FW.
-ç”±äºæ•´ä¸ªå‡çº§è¿‡ç¨‹ä¸å¯æ‰“æ–­ã€‚å› æ­¤å°†çº¿ç¨‹é”å’Œè¿›ç¨‹çš„ä½ç½®è¿›è¡Œè°ƒæ•´ã€‚
+Éı¼¶Á÷³Ì:
+1.Í¬²½Ê§°Ü¡£ËµÃ÷²»ÊÇloaderºÍFW.Ö´ĞĞ2
+Èç¹ûÍ¬²½³É¹¦,¼ì²âÊÇFW»¹ÊÇBOOTLOADER.Èç¹ûÊÇFW.Ö´ĞĞ3.Èç¹ûÊÇLOADER
+2.ÏÂÔØLOADER
+3.²Á³ıFW.
+4.ÏÂÔØFW.
+ÓÉÓÚÕû¸öÉı¼¶¹ı³Ì²»¿É´ò¶Ï¡£Òò´Ë½«Ïß³ÌËøºÍ½ø³ÌµÄÎ»ÖÃ½øĞĞµ÷Õû¡£
 --------------------------------------------------------------------------------------------------
 Upgrade process:
 flow:
@@ -78,6 +527,12 @@ In my test, I get verison
 hex(0X73 0X70 0X69 0X6C 0X6F 0X61 0X64 0X65 0X72)---->spiloader.
 
 Since the entire upgrade process cannot be interrupted. Therefore, adjust the position of the thread lock and the process.
+--------------------------------------------------------------------------------------------------
+ĞŞ¸ÄÏÂÔØÁ÷³Ì¡£¼ÓÈë²âÊÔÌ¬×´Ì¬µÄ´¦Àí¡£
+×¢Òâ:´¦ÀíµÄÊ±ºòĞèÒªÔÚ²âÊÔÌ¬-ÏÂÔØÌ¬µÄ×ª»»Ö®ºó½øĞĞĞ¾Æ¬µÄÓ²¸´Î»¡£
+Modify the download process. Add the processing of the test state.
+Note: When processing, a hard reset of the chip is required after the conversion from test state to download state.
+
 */
 unsigned long HSMUpgradeTest(int argc, char *argv[])
 {
@@ -111,7 +566,7 @@ unsigned long HSMUpgradeTest(int argc, char *argv[])
 	/*ALL OF THE UPGRADE FLOW,CAN'T BE BREAK */
 	if(step == STEP1_CHECK_STATUS)
 	{	
-		/*åŒæ­¥æˆåŠŸ-è¯´æ˜æ˜¯BOOTLOADERæˆ–è€…æ˜¯FW.åŒæ­¥å¤±è´¥-è·³è½¬è‡³ä¸‹è½½bootloader*/
+		/*Í¬²½³É¹¦-ËµÃ÷ÊÇBOOTLOADER»òÕßÊÇFW.Í¬²½Ê§°Ü-Ìø×ªÖÁÏÂÔØbootloader*/
 		printf("CURRENT STEP :%4d ,STEP1_CHECK_STATUS\n",step);
 		/*How to use sync ?if you has reset the module. you don't need sync. the default state of HSM module is receive instuction*/
 		ret = ISTECC512AFunctionPointerStructure.ISTECC512A_StatusSync();
@@ -141,7 +596,8 @@ unsigned long HSMUpgradeTest(int argc, char *argv[])
 		}
 	}
 
-	/*é”å®šæ•´ä¸ªæ“¦é™¤å’Œä¸‹è½½çš„æµç¨‹*/
+	/*Ëø¶¨Õû¸ö²Á³ıºÍÏÂÔØµÄÁ÷³Ì*/
+	/*LOCK THE ENTIRE ERASE AND DOWNLOAD FLOW*/
 	HSMSetPMutexAndSemphre();
 
 	if(step == STEP2_DOWNLOAD_BOOTLOADER)
@@ -166,9 +622,82 @@ unsigned long HSMUpgradeTest(int argc, char *argv[])
 			HSMMsDelay(20);
 		/*This flow will sync commucaiton.<--*/
 
-
 		printf("CURRENT STEP :%4d\n",step);
 		HSMMsDelay(100);
+
+		/*=============================================================================
+		 * ¡¾ĞÂÔö¡¿²âÊÔÌ¬´¦ÀíÁ÷³Ì£ºÏÂÔØ BOOTLOADER.ini Ö®Ç°£¬ÏÈ¶Á¹¤³§ÂëÅĞ¶Ï×´Ì¬
+		 *  [added] Test mode process: Before downloading BOOTLOADER.ini, first read the factory code to determine the state
+		 *-----------------------------------------------------------------------------
+		 * Âß¼­£º
+		 *     ¶Á¹¤³§Âë -> ×´Ì¬ == 02  -> ½øÈë²âÊÔÌ¬Á÷³Ì£¨Ö´ĞĞ02Ì¬SPIÖ¸Áî + Ó²¼ş¸´Î»£©
+		 *                        -> ¸´Î»ºóÓ¦½øÈë 03 Ì¬£¬ÔÙ¼ÌĞøÏÂÔØ bootloader
+		 *               ×´Ì¬ == 03/04/05 -> Ìø¹ı²âÊÔÌ¬Á÷³Ì£¬Ö±½ÓÏÂÔØ bootloader
+		 * Logic:
+		 *     Read factory code -> state == 02 -> enter test mode process (execute 02 state SPI command + hardware reset)
+		 *                        -> after reset should enter 03 state, then continue to download bootloader
+		 *               state == 03/04/05 -> skip test mode process, directly download	 bootloader
+		 *-----------------------------------------------------------------------------		
+		 *===========================================================================*/
+		{
+			unsigned char factory_code_state = 0;
+
+			/*¶ÁÈ¡¹¤³§Âë²¢È¡×´Ì¬×Ö½Ú*/
+			ret = ReadFactoryCodeState(&ISTECC512AFunctionPointerStructure,
+			                           &factory_code_state);
+			if (ret)
+			{
+				printf("READ FACTORY CODE FAILED, PLEASE CHECK THE COMMUNICATION\n");
+				HSMClearPMutexAndSemphre();
+				HSMHardwareDeinit();
+				return DOWNLOAD_BOOTLOADER_FAILED;
+			}
+
+			printf("CURRENT FACTORY CODE STATE :%02X\n", factory_code_state);
+
+			if (factory_code_state == FACTORY_CODE_STATE_TEST)
+			{
+				/*02Ì¬£º½øÈë²âÊÔÌ¬Á÷³Ì*/
+				printf("FACTORY CODE IS 02, ENTER TEST MODE PROCESS\n");
+
+				/*²âÊÔÌ¬´¦ÀíÁ÷³Ì£ºÖ´ĞĞ02Ì¬SPIÖ¸Áî -> Ó²¼ş¸´Î» -> È·ÈÏ½øÈë03Ì¬*/
+				ret = HSMTestModeProcess(&ISTECC512AFunctionPointerStructure);
+				if (ret)
+				{
+					printf("TEST MODE PROCESS FAILED, PLEASE CHECK THE HSM\n");
+					HSMClearPMutexAndSemphre();
+					HSMHardwareDeinit();
+					return DOWNLOAD_BOOTLOADER_FAILED;
+				}
+
+				//ÌáÊ¾ÓÃ»§¸´Î»Ä£¿é£¬È·±£Ä£¿é½øÈëÏÂÔØÌ¬
+				//Prompt the user to reset the module to ensure it enters the download state.
+				printf("TEST MODE PROCESS SUCCESS, WILL DOWNLOAD BOOTLOADER\n");
+				for(int i =0; i<10;i++)
+				{
+					printf("PLEASE MAKE SURE RESET THE  HSM MODLUE!\n");
+					HSMMsDelay(1000);
+				}
+				while(1);
+			}
+			else if ((factory_code_state == FACTORY_CODE_STATE_03)
+			      || (factory_code_state == FACTORY_CODE_STATE_04)
+			      || (factory_code_state == FACTORY_CODE_STATE_05))
+			{
+				/*03/04/05£ºÌø¹ı²âÊÔÌ¬Á÷³Ì*/
+				printf("FACTORY CODE IS %02X, SKIP TEST MODE PROCESS, GO TO DOWNLOAD BOOTLOADER\n",
+				       factory_code_state);
+			}
+			else
+			{
+				/*ÆäËû×´Ì¬,½«×´Ì¬Êä³ö²¢Í£Ö¹*/
+				/*Other states, output the state and stop*/
+				printf("FACTORY CODE IS %02X, NOT IN TEST MODE OR DOWNLOAD MODE, PLEASE CHECK THE HSM\n",
+				       factory_code_state);
+				while(1);	   
+			}
+		}
+
 		ret = script_analysis("HSM_BOOTLOADER.ini",1);	
 		if(ret)
 		{
@@ -190,7 +719,7 @@ unsigned long HSMUpgradeTest(int argc, char *argv[])
 		/*pin confirm*/
 		printf("pin is 8 byte password.!\n");
 		hex_dump(default_pin+6,8,8,"default_pin");
-		/*é»˜è®¤æ˜¯8å­—èŠ‚çš„å¯†ç 12345678*/
+		/*Ä¬ÈÏÊÇ8×Ö½ÚµÄÃÜÂë12345678*/
 		ret = ISTECC512AFunctionPointerStructure.ISTECC512A_SendOneMessageOneShot(default_pin, 14);
 		HSMMsDelay(100);
 		ret = ISTECC512AFunctionPointerStructure.ISTECC512A_ReceiveOneMessage(temp,16);
