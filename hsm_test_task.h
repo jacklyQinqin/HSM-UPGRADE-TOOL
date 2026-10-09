@@ -21,4 +21,5 @@ unsigned long  IS32U512ASm2VerifyEvalueWithPubKeyIndex(void);
 /*E+RS verify and  e sign.*/
 unsigned long  IS32U512ASm2SignEvalueAndVerifyEvalueWithPubKeyIndex(void);
 unsigned long ISTECCMODADDTest(void);
+unsigned long EXCEPTIONTest(void);
 #endif

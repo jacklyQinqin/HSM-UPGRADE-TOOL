@@ -476,13 +476,13 @@ int compare_respond_value(char * respond, char *comapare)
 }
 
 
-long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
+long receive_script_respond(unsigned char *receive,unsigned long buf_len,ISTECCFunctionPointer_t * p)
 {
     long ret  = 0; 
     long time = 0;
     long len  = 0;
     long i  = 0;
-    long time_out_count  = 6; //The most delay 3*10 + 100 * 2 = 230ms
+    long time_out_count  = 6*10; //The most delay 3*10 + 100 * 2 = 230ms
     const char dummy[16] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
     const char rec_right[4] = {0x50,0x42,0x53,0x55};
     const char rec_error[4] = {0x63,0x62,0x63,0x65};
@@ -502,7 +502,7 @@ long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
         p->ISTECC512A_ReceiveOneMessage(receive,16);
         if(time > 3)
         {
-            HSMMsDelay(300);
+            HSMMsDelay(500);
         }
         else
         {
@@ -528,10 +528,22 @@ long receive_script_respond(unsigned char *receive,ISTECCFunctionPointer_t * p)
     {
         printf("Timeout and don't get the right respoond!\n");
         ret =  2;
+        /*FIX:never parse the buffer after timeout,the garbage
+          length field would overflow the caller's buffer.*/
+        return ret;
     }
 
     len = receive[4] + receive[5] * 0X100;
     time = (len + 15) / 0x10;
+
+    /*FIX:bound check,the whole rounded respond must fit into
+      the caller's buffer,otherwise never touch it.*/
+    if((time * 16) > (long)buf_len)
+    {
+        printf("RESPOND LEN %ld EXCEED THE BUFFER LEN %ld!\n",len,buf_len);
+        ret = 4;
+        return ret;
+    }
 
     #if 0
     printf("receive 4 is %d\n",receive[4]);
@@ -677,7 +689,13 @@ int script_analysis(char * file_name,char comapre_en)
 		send_script_cmd(send,send_len,&ISTECC512AFunctionPointerStructure);
 		HSMUsDelay(5);
 		/*接收响应值*/
-		receive_script_respond(receive,&ISTECC512AFunctionPointerStructure);
+		ret = receive_script_respond(receive,sizeof(receive),&ISTECC512AFunctionPointerStructure);
+		if(0 != ret)
+		{
+			printf("RECEIVE SCRIPT RESPOND ERROR:%d,SCRIPT LINE %4d,STOP!\n",ret,i);
+			fclose(fp);
+			return ret;
+		}
 
 		/*compare the respond*/
 		if(comapre_en)

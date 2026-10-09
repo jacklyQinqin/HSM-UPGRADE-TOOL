@@ -205,7 +205,7 @@ int HSMClearPMutexAndSemphre(void)
     pthread_mutex_unlock(&hsm_mutex_pthread);
 }
 /*print log yes or no*/
-#define HSM_LOGIC_LINIX_DEBUG_ON 0
+#define HSM_LOGIC_LINIX_DEBUG_ON    0
 /*send and receive buff*/
 static unsigned char tx_buff[2064] = {0};
 static unsigned char rx_buff[2064] = {0};
