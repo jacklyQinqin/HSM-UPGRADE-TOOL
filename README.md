@@ -232,7 +232,7 @@ Unified HSMRead processing,Print information only at the wrong time.Now they loo
     4.Modify the type of fd. from (static int fd;) to (int  fd;);
 
  
-## verison 1.9.0.1(03)
+## verison 1.9.0.1(04)
 
 MODIFY THE HARDWARE INIT  HSMREAD AND HSMWRITE.
     1.Modify the  HSMRead and HSMWrite.  HSMSpiInit  and close(fd)  will be executed every time. 
@@ -244,3 +244,11 @@ MODIFY THE HARDWARE INIT  HSMREAD AND HSMWRITE.
     to 
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
+
+
+
+## verison 1.9.0.1(05)
+修改下载流程。加入测试态状态的处理。
+注意:处理的时候需要在测试态-下载态的转换之后进行芯片的硬复位。
+Modify the download process. Add the processing of the test state.
+Note: When processing, a hard reset of the chip is required after the conversion from test state to download state.
